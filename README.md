@@ -9,6 +9,7 @@ Wrapper for APT, Flatpak and Snap
 
 ## Install example: "discord"
 lines starting with "|||" are already installed
+
 you can select multiple items at the same time with tab
 ![install discord](https://github.com/hobronc/afs/assets/45543141/4b27811f-74dc-41a4-a739-7f3f84427881)
 
