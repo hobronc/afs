@@ -154,14 +154,14 @@ updater(){
 lister_installed() {
  
 list_installed_file="$work_folder/installed"
-apt list --installed 2>/dev/null | awk -F '/' '{print "<O> APT " $1}'>>$list_installed_file
+apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
  
 if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-    flatpak list --columns=app | awk '{print "<O> FLAT " $1}'>>$list_installed_file
+    flatpak list --columns=app | awk '{print "O FLAT " $1}'>>$list_installed_file
 fi
  
 if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-    snap list | awk '{print "<O> SNAP " $1}'>>$list_installed_file
+    snap list | awk '{print "O SNAP " $1}'>>$list_installed_file
 fi
  
 #list_installed=`cat $list_installed_file`
@@ -188,22 +188,22 @@ search_package_install() {
     search_result_file_full="$work_folder/search_result_full"
  
     tput setaf 5; echo -e " Search the standard repository"; tput sgr0
-    apt-cache search $search_term | awk '{print "<~> APT " $0 "..."}'>>$search_result_file_full
+    apt-cache search $search_term | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
  
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         tput setaf 4; echo -e " Search the Flatpak repos"; tput sgr0
-        flatpak search --columns=app,name,description $search_term | awk '{print "<~> FLAT " $0 "..."}'>>$search_result_file_full
+        flatpak search --columns=app,name,description $search_term | awk '{print "- FLAT " $0 "..."}'>>$search_result_file_full
     fi
  
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
         tput setaf 6; echo -e " Search the Snap repos"; tput sgr0
-        snap search $search_term 2>/dev/null | awk '{$2=$3=$4=""; print "<~> SNAP " $0 "..."}'>>$search_result_file_full
+        snap search $search_term 2>/dev/null | awk '{$2=$3=$4=""; print "- SNAP " $0 "..."}'>>$search_result_file_full
     fi
  
  
     #### if a line is already installed then change the marking in the search result file.
     while read -r line; do
-        sed -i "s/<~> $line/<O> $line/g" $search_result_file_full
+        sed -i "s/- $line/O $line/g" $search_result_file_full
     done < <(grep -Fxf <(sort $search_result_file_full | awk '{print $2" "$3}') <(sort $list_installed_file | awk '{print $2" "$3}'))
  
  
@@ -230,8 +230,8 @@ FZF() {
     	| awk -v srch="APT" -v repl="\e[36mAPT \e[0m" '{ sub(srch,repl,$0); print $0 }' \
     	| awk -v srch="FLAT" -v repl="\e[34mFLAT\e[0m" '{ sub(srch,repl,$0); print $0 }' \
     	| awk -v srch="SNAP" -v repl="\e[35mSNAP\e[0m" '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch='<~>' -v repl="\e[93m<~>\e[0m" '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch='<O>' -v repl="\e[92m<O>\e[0m" '{ sub(srch,repl,$0); print $0 }' )
+    	| awk -v srch='-' -v repl="\e[93m-\e[0m" '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch='O' -v repl="\e[92mO\e[0m" '{ sub(srch,repl,$0); print $0 }' )
     
 
     pkg="$(
@@ -251,7 +251,7 @@ FZF() {
             --info=inline \
             --no-unicode \
             --preview '
-                if [[ {1} == "<O>" ]]                      # check, if 1. field of selected line (in fzf) is a locally installed package.
+                if [[ {1} == "O" ]]                      # check, if 1. field of selected line (in fzf) is a locally installed package.
                 then
                     if [[ {2} == "APT" ]]
                     then
