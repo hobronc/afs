@@ -1,7 +1,7 @@
 # afs
 Wrapper for APT, Flatpak and Snap
 
-## Help / Main page
+## Main page
 ![Screenshot from 2023-06-02 13-53-02](https://github.com/hobronc/afs/assets/45543141/0822b80c-122a-4de0-ba6a-459572ce1c82)
 
 
@@ -21,3 +21,5 @@ you can select multiple items at the same time with tab
 you can select multiple items at the same time with tab
 ![Screenshot from 2023-06-02 13-54-58](https://github.com/hobronc/afs/assets/45543141/ba37200d-7f56-414d-9397-c30119deef8f)
 
+## Help page
+![Screenshot from 2023-06-02 14-03-29](https://github.com/hobronc/afs/assets/45543141/fc2d4c71-7e52-46a0-9630-6b6769360a17)
