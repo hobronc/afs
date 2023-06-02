@@ -37,25 +37,26 @@ Wrapper for APT, Flatpak and Snap
             
 
 ## Main page
-![Screenshot from 2023-06-02 13-53-02](https://github.com/hobronc/afs/assets/45543141/0822b80c-122a-4de0-ba6a-459572ce1c82)
+![Screenshot from 2023-06-02 16-07-53](https://github.com/hobronc/afs/assets/45543141/123f80bd-3064-4a31-9a04-b28f11caa669)
+
 
 
 ## Update
-![Screenshot from 2023-06-02 13-53-28](https://github.com/hobronc/afs/assets/45543141/5b568c17-ce0f-405a-8d94-4aeec89b6b6a)
+![Screenshot from 2023-06-02 16-08-23](https://github.com/hobronc/afs/assets/45543141/1a329f3f-2d5c-4d23-ab55-4f708bac631f)
+![Screenshot from 2023-06-02 16-08-48](https://github.com/hobronc/afs/assets/45543141/3ca4d166-c204-4b5a-ad86-09c6ff2d066f)
 
 
 ## Install example: "discord"
 lines starting with 'O' are already installed
 
+you can select multiple items at the same time with tab and than press enter to install all
+
+![Screenshot from 2023-06-02 16-09-08](https://github.com/hobronc/afs/assets/45543141/62e806eb-0e6b-4bf8-b6cc-e953ef71dd8b)
+
+
+## Remove example: "vlc"
 you can select multiple items at the same time with tab
-![Screenshot from 2023-06-02 15-00-39](https://github.com/hobronc/afs/assets/45543141/8fad59d9-ecfb-45af-9949-5307bf9dba1e)
-
-
-
-
-## Remove example: "gedit"
-you can select multiple items at the same time with tab
-![Screenshot from 2023-06-02 15-00-51](https://github.com/hobronc/afs/assets/45543141/e79fc6d8-70c3-4de8-81b5-3842e02982d8)
+![Screenshot from 2023-06-02 16-09-31](https://github.com/hobronc/afs/assets/45543141/94eac6aa-8136-474c-b9c3-3b8141816b7d)
 
 
 ## Help page
