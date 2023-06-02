@@ -154,7 +154,7 @@ updater(){
 lister_installed() {
  
 list_installed_file="$work_folder/installed"
-apt list --installed 2>/dev/null | awk -F '/' '{print "<O> APT. " $1}'>>$list_installed_file
+apt list --installed 2>/dev/null | awk -F '/' '{print "<O> APT " $1}'>>$list_installed_file
  
 if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
     flatpak list --columns=app | awk '{print "<O> FLAT " $1}'>>$list_installed_file
@@ -188,7 +188,7 @@ search_package_install() {
     search_result_file_full="$work_folder/search_result_full"
  
     tput setaf 5; echo -e " Search the standard repository"; tput sgr0
-    apt-cache search $search_term | awk '{print "<~> APT. " $0 "..."}'>>$search_result_file_full
+    apt-cache search $search_term | awk '{print "<~> APT " $0 "..."}'>>$search_result_file_full
  
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         tput setaf 4; echo -e " Search the Flatpak repos"; tput sgr0
@@ -227,7 +227,7 @@ FZF() {
     
     ### COLORIZE THE FZF WITH ANSI COLORS
     list_for_fzf=$(echo -e "$list_for_fzf" \
-    	| awk -v srch="APT." -v repl="\e[36mAPT.\e[0m" '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch="APT" -v repl="\e[36mAPT \e[0m" '{ sub(srch,repl,$0); print $0 }' \
     	| awk -v srch="FLAT" -v repl="\e[34mFLAT\e[0m" '{ sub(srch,repl,$0); print $0 }' \
     	| awk -v srch="SNAP" -v repl="\e[35mSNAP\e[0m" '{ sub(srch,repl,$0); print $0 }' \
     	| awk -v srch='<~>' -v repl="\e[93m<~>\e[0m" '{ sub(srch,repl,$0); print $0 }' \
@@ -253,9 +253,9 @@ FZF() {
             --preview '
                 if [[ {1} == "<O>" ]]                      # check, if 1. field of selected line (in fzf) is a locally installed package.
                 then
-                    if [[ {2} == "APT." ]]
+                    if [[ {2} == "APT" ]]
                     then
-                    echo -e "\e[1;32mPackage is already INSTALLED with \e[36mAPT. \e[1;32mInfo: \n\e[0m"
+                    echo -e "\e[1;32mPackage is already INSTALLED with \e[36mAPT \e[1;32mInfo: \n\e[0m"
                     apt-cache show {3} | grep -v "SHA"
                     fi
                     if [[ {2} == "FLAT" ]]
@@ -269,9 +269,9 @@ FZF() {
                     snap info {3}
                     fi
                 else
-                    if [[ {2} == "APT." ]]
+                    if [[ {2} == "APT" ]]
                     then
-                    echo -e "\e[1;93mPackage is avaible with \e[36mAPT. \e[1;93mInfo: \n\e[0m"
+                    echo -e "\e[1;93mPackage is avaible with \e[36mAPT \e[1;93mInfo: \n\e[0m"
                     apt-cache show {3} | grep -v "SHA"
                     fi
                     if [[ {2} == "FLAT" ]]
@@ -321,7 +321,7 @@ FZF() {
         source=$(cat $selection_result_file | cut -d " " -f $count_source)
         package=$(cat $selection_result_file | cut -d " " -f $count_pkg)
         case $source in
-            APT.)
+            APT)
                 APT_packages="$APT_packages $package"
             ;;
             FLAT)
@@ -564,7 +564,7 @@ menu_main() {
             echo -e "There is three main option in the script:"
             echo
             echo -e "    1 - Update the system"
-            echo -e "    2 - Install packages. Search in the Ubuntu/Debian/etc. repositories with apt. And also search in the Flatpak (flathub), and Snap repos"
+            echo -e "    2 - Install packages. Search in the Ubuntu/Debian/etc. repositories with apt . And also search in the Flatpak (flathub), and Snap repos"
             echo -e "    3 - Remove packages. List all packages installed with FZF (fuzzyfinder) and remove them with the appropriate package manager."
             echo -e "    4 - Setup - Enable the Flatpak and Snap package services"
             echo
