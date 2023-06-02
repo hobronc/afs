@@ -559,10 +559,11 @@ menu_main() {
         h|--help)
             echo -e "This is a simple bash script to update/install/remove from 3 sources: regular packages, Flatpaks and Snaps together."
             echo -e "Dependencies: fzf - fuzzy finder. If the fzf binary is not avaible the sript propose to install it."
+            echo -e "	           nala - Commandline frontend for the apt package manager"
             echo
             echo -e "There is three main option in the script:"
             echo
-            echo -e "    1 - Update the system -"
+            echo -e "    1 - Update the system"
             echo -e "    2 - Install packages. Search in the Ubuntu/Debian/etc. repositories with apt. And also search in the Flatpak (flathub), and Snap repos"
             echo -e "    3 - Remove packages. List all packages installed with FZF (fuzzyfinder) and remove them with the appropriate package manager."
             echo -e "    4 - Setup - Enable the Flatpak and Snap package services"
@@ -587,12 +588,12 @@ menu_main() {
             echo
             echo -e "- s|setup - Setup"
             echo -e "    You can setup/enable the Flatpak and Snap repositories from the script"
-            echo -e
+            echo
         ;;
         *)
         tput setaf 1; echo -e "\nNo option provided exiting..."; tput sgr0
         close_delete
-        ;;
+        ;; 
     esac
  
 }
