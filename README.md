@@ -10,10 +10,11 @@ Wrapper for APT, Flatpak and Snap
 
 
 ## Install example: "discord"
-lines starting with "'<O>'" are already installed
+lines starting with 'O' are already installed
 
 you can select multiple items at the same time with tab
-![Screenshot from 2023-06-02 13-54-25](https://github.com/hobronc/afs/assets/45543141/09a0c1c5-02ad-4f65-930b-a3f00afb49d8)
+![Screenshot from 2023-06-02 13-58-30](https://github.com/hobronc/afs/assets/45543141/63a09521-18e1-44de-94e2-2042096b75d4)
+
 
 
 ## Remove example: "Thunar"
