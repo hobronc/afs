@@ -1,15 +1,15 @@
 # afs
 Wrapper for APT, Flatpak and Snap
 
-It uses the FZF (fuzzyfinder) to distplay the packages available.
 
---help
+
             This is a simple bash script to update/install/remove from 3 sources: regular packages, Flatpaks and Snaps together."
-            Dependencies: fzf - fuzzy finder. If the fzf binary is not avaible the sript propose to install it."
+            Dependencies: fzf - fuzzy finder. If the fzf binary is not avaible the sript propose to install it.
+                          nala - Commandline frontend for the apt package manager"
             
             There is three main option in the script:"
             
-                1 - Update the system -"
+                1 - Update the system"
                 2 - Install packages. Search in the Ubuntu/Debian/etc. repositories with apt. And also search in the Flatpak (flathub), and Snap repos"
                 3 - Remove packages. List all packages installed with FZF (fuzzyfinder) and remove them with the appropriate package manager."
                 4 - Setup - Enable the Flatpak and Snap package services"
