@@ -154,14 +154,14 @@ updater(){
 lister_installed() {
  
 list_installed_file="$work_folder/installed"
-apt list --installed 2>/dev/null | awk -F '/' '{print "||| APT. " $1}'>>$list_installed_file
+apt list --installed 2>/dev/null | awk -F '/' '{print "<O> APT. " $1}'>>$list_installed_file
  
 if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-    flatpak list --columns=app | awk '{print "||| FLAT " $1}'>>$list_installed_file
+    flatpak list --columns=app | awk '{print "<O> FLAT " $1}'>>$list_installed_file
 fi
  
 if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-    snap list | awk '{print "||| SNAP " $1}'>>$list_installed_file
+    snap list | awk '{print "<O> SNAP " $1}'>>$list_installed_file
 fi
  
 #list_installed=`cat $list_installed_file`
@@ -188,22 +188,22 @@ search_package_install() {
     search_result_file_full="$work_folder/search_result_full"
  
     tput setaf 5; echo -e " Search the standard repository"; tput sgr0
-    apt-cache search $search_term | awk '{print "--- APT. " $0}'>>$search_result_file_full
+    apt-cache search $search_term | awk '{print "<~> APT. " $0 "..."}'>>$search_result_file_full
  
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         tput setaf 4; echo -e " Search the Flatpak repos"; tput sgr0
-        flatpak search --columns=app,name,description $search_term | awk '{print "--- FLAT " $0}'>>$search_result_file_full
+        flatpak search --columns=app,name,description $search_term | awk '{print "<~> FLAT " $0 "..."}'>>$search_result_file_full
     fi
  
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
         tput setaf 6; echo -e " Search the Snap repos"; tput sgr0
-        snap search $search_term 2>/dev/null | awk '{$2=$3=$4=""; print "--- SNAP " $0}'>>$search_result_file_full
+        snap search $search_term 2>/dev/null | awk '{$2=$3=$4=""; print "<~> SNAP " $0 "..."}'>>$search_result_file_full
     fi
  
  
     #### if a line is already installed then change the marking in the search result file.
     while read -r line; do
-        sed -i "s/--- $line/||| $line/g" $search_result_file_full
+        sed -i "s/<~> $line/<O> $line/g" $search_result_file_full
     done < <(grep -Fxf <(sort $search_result_file_full | awk '{print $2" "$3}') <(sort $list_installed_file | awk '{print $2" "$3}'))
  
  
@@ -224,11 +224,21 @@ FZF() {
     elif [[ $1 == "remove" ]]; then
         list_for_fzf=$(cat $list_installed_file | grep -v "SNAP Name" | grep -v "Listing...")
     fi
- 
+    
+    ### COLORIZE THE FZF WITH ANSI COLORS
+    list_for_fzf=$(echo -e "$list_for_fzf" \
+    	| awk -v srch="APT." -v repl="\e[36mAPT.\e[0m" '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch="FLAT" -v repl="\e[34mFLAT\e[0m" '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch="SNAP" -v repl="\e[35mSNAP\e[0m" '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch='<~>' -v repl="\e[93m<~>\e[0m" '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch='<O>' -v repl="\e[92m<O>\e[0m" '{ sub(srch,repl,$0); print $0 }' )
+    
+
     pkg="$(
         echo -e "$list_for_fzf" |                                     # load list of package names from $pacui_list_install_all variable. "-e" interprets the added newlines.
         # sort -k1,1 -u |
         fzf -i \
+            --ansi \
             --multi \
             --exact \
             --no-sort \
@@ -241,57 +251,58 @@ FZF() {
             --info=inline \
             --no-unicode \
             --preview '
-                if [[ {1} == "|||" ]]                      # check, if 1. field of selected line (in fzf) is a locally installed package.
+                if [[ {1} == "<O>" ]]                      # check, if 1. field of selected line (in fzf) is a locally installed package.
                 then
                     if [[ {2} == "APT." ]]
                     then
-                    echo -e "\e[1m*** Package is already INSTALLED with APT. *** Info: \n\e[0m"
+                    echo -e "\e[1;32mPackage is already INSTALLED with \e[36mAPT. \e[1;32mInfo: \n\e[0m"
                     apt-cache show {3} | grep -v "SHA"
                     fi
                     if [[ {2} == "FLAT" ]]
                     then
-                    echo -e "\e[1m*** Package is already INSTALLED with Flatpak. *** Info: \n\e[0m"
+                    echo -e "\e[1;32mPackage is already INSTALLED with \e[34mFlatpak. \e[1;32mInfo: \n\e[0m"
                     flatpak remote-info flathub {3}
                     fi
                     if [[ {2} == "SNAP" ]]
                     then
-                    echo -e "\e[1m*** Package is already INSTALLED with Snap. *** Info: \n\e[0m"
+                    echo -e "\e[1;32mPackage is already INSTALLED with \e[35mSnap. \e[1;32mInfo: \n\e[0m"
                     snap info {3}
                     fi
                 else
                     if [[ {2} == "APT." ]]
                     then
-                    echo -e "\e[1mPackage is avaible with APT. Info: \n\e[0m"
+                    echo -e "\e[1;93mPackage is avaible with \e[36mAPT. \e[1;93mInfo: \n\e[0m"
                     apt-cache show {3} | grep -v "SHA"
                     fi
                     if [[ {2} == "FLAT" ]]
                     then
-                    echo -e "\e[1mPackage is avaible with Flatpak. Info: \n\e[0m"
+                    echo -e "\e[1;93mPackage is avaible with \e[34mFlatpak. \e[1;93mInfo: \n\e[0m"
                     flatpak remote-info flathub {3}
                     fi
                     if [[ {2} == "SNAP" ]]
                     then
-                    echo -e "\e[1mPackage is avaible with Snap. Info: \n\e[0m"
+                    echo -e "\e[1;93mPackage is avaible with \e[35mSnap. \e[1;93mInfo: \n\e[0m"
                     snap info {3}
                     fi
                 fi' \
             "$(
                 if (( $(tput cols) >= 125 ))
                 then
-                    echo "--preview-window=right:55%:wrap"                  # depending on the terminal width (determined by "tput cols"), the preview window is either shown on the right or the bottom
+                    echo "--preview-window=right:45%:wrap"                  # depending on the terminal width (determined by "tput cols"), the preview window is either shown on the right or the bottom
                 else
-                    echo "--preview-window=bottom:60%:wrap"
+                    echo "--preview-window=bottom:45%:wrap"
                 fi
             )" \
             --header="TAB key to (un)select. ENTER to install. ESC to quit." \
             --prompt="Enter string to filter list > " |
-        awk '{print $2" "$3""}'                                                    # use "awk" to filter output of "fzf" and only get the first field (which contains the package name). "fzf" should output a separated (by newline characters) list of all chosen packages!
+        awk '{print $2" "$3""}'                                                 # use "awk" to filter output of "fzf" and only get the first field (which contains the package name). 
+										# "fzf" should output a separated (by newline characters) list of all chosen packages!
     )"
  
  
         selection_result_file="$work_folder/selection_result"
  
-        echo $pkg>>$selection_result_file
+    echo $pkg>>$selection_result_file
     max_word=$(cat $selection_result_file | wc -w)
     if [ $max_word -lt "2" ]; then
         echo -e "\nNo package selected. Exiting..."
@@ -411,7 +422,45 @@ remove_packages() {
     fi
  
 }
- 
+
+### Setup function - Options to enable flatpak and snap repositories
+setup() {
+    setup_install_package_names=""
+    ### Ask the user if they want to install Flatpak
+    tput setaf 3; echo -e "\n Do you wish to Install the Flatpak service?\n(y|n)"; tput sgr0
+    read -r flatpak_install
+    if [[ $flatpak_install == "y" ]]; then ### if the answer was yes (y) add "flatpak" to the list of packages to install
+        setup_install_package_names="$setup_install_package_names "flatpak
+    fi
+    
+    
+    ### Ask the user if they want to install Snapd
+    tput setaf 3; echo -e "\n Do you wish to Install the Snap service?\n(y|n)"; tput sgr0
+    read -r snap_install
+    if [[ $snap_install == "y" ]]; then ### if the answer was yes (y) add "snapd" to the list of packages to install
+        setup_install_package_names="$setup_install_package_names "snapd
+    fi
+    
+    ### If no answer is provided we can simply exit
+    if [[ $setup_install_package_names == "" ]]; then
+        tput setaf 3; echo -e "\n No service was selected to install"; tput sgr0
+        close_delete
+    else
+        sudo nala install $setup_install_package_names
+    fi
+    ### IF the install was correct the binaries should be in place so we can add the flathub repo
+    if [[ -f "$FLATPAK_LOCATION" ]]; then
+        sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        tput setaf 3; echo -e "\nFlathub repository added.\n"; tput sgr0
+    fi
+    if [[ -f "$SNAP_LOCATION" ]]; then
+        sudo snap install core
+        tput setaf 3; echo -e "\nSnap core service installed.\n"; tput sgr0
+    fi
+    
+    tput setaf 3; echo -e "\n Please note that the Flatpak service installation requires a reboot to be fully finished."; tput sgr0
+}
+
 ### FUNCTION - delete the temp folder at the end
 close_delete() {
     if [[ $1 == "wait" ]]; then
@@ -432,9 +481,12 @@ menu_main() {
         tput setaf 7; echo -e " u|1 - Update the system (APT,Flap,Snap)\n"; tput sgr0
         tput setaf 7; echo -e " i|2 - Install package (search all available package in the repositories with APT,Flatpak,Snap)\n"; tput sgr0
         tput setaf 7; echo -e " r|3 - Remove package (search all installed package with APT,Flatpak,Snap)\n"; tput sgr0
+        if [[ $FLAT_SNAP_ENABLE != "3" ]]; then
+            tput setaf 7; echo -e " s   - Setup - Enable the Flatpak and Snap package services\n"; tput sgr0
+        fi
         tput setaf 7; echo -e " h|? - Help page"; tput sgr0
         echo
-        #tput setaf 2; echo -e "  u|1 - Update the system (APT,Flap,Snap)\n"; tput sgr0
+        
         read -r menu_selection
  
         #~ Clear the screen after the menu. This is the only time when we clear the terminal.
@@ -500,6 +552,10 @@ menu_main() {
                 esac
             close_delete wait
         ;;
+        s|setup)
+        	setup
+        	close_delete wait
+        ;;
         h|--help)
             echo -e "This is a simple bash script to update/install/remove from 3 sources: regular packages, Flatpaks and Snaps together."
             echo -e "Dependencies: fzf - fuzzy finder. If the fzf binary is not avaible the sript propose to install it."
@@ -509,6 +565,7 @@ menu_main() {
             echo -e "    1 - Update the system -"
             echo -e "    2 - Install packages. Search in the Ubuntu/Debian/etc. repositories with apt. And also search in the Flatpak (flathub), and Snap repos"
             echo -e "    3 - Remove packages. List all packages installed with FZF (fuzzyfinder) and remove them with the appropriate package manager."
+            echo -e "    4 - Setup - Enable the Flatpak and Snap package services"
             echo
             echo -e "If there is no argument when the script is launched you are presented with a menu."
             echo -e "Where you can select from the previously mentioned options."
@@ -527,6 +584,10 @@ menu_main() {
             echo -e "example: afs.sh i - launch the install menu. will ask for a search term directly"
             echo -e "example: afs.sh i <search term> - will search for the <search term> in the standard repositeories, Flathub, Snap"
             echo -e "example: afs.sh u a - ALL method will be used t0o update the system - Apt,Flatpak,Snap"
+            echo
+            echo -e "- s|setup - Setup"
+            echo -e "    You can setup/enable the Flatpak and Snap repositories from the script"
+            echo -e
         ;;
         *)
         tput setaf 1; echo -e "\nNo option provided exiting..."; tput sgr0
