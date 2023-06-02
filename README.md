@@ -48,13 +48,15 @@ Wrapper for APT, Flatpak and Snap
 lines starting with 'O' are already installed
 
 you can select multiple items at the same time with tab
-![Screenshot from 2023-06-02 13-58-30](https://github.com/hobronc/afs/assets/45543141/63a09521-18e1-44de-94e2-2042096b75d4)
+![Screenshot from 2023-06-02 15-00-39](https://github.com/hobronc/afs/assets/45543141/8fad59d9-ecfb-45af-9949-5307bf9dba1e)
+
 
 
 
 ## Remove example: "gedit"
 you can select multiple items at the same time with tab
-![Screenshot from 2023-06-02 13-54-58](https://github.com/hobronc/afs/assets/45543141/ba37200d-7f56-414d-9397-c30119deef8f)
+![Screenshot from 2023-06-02 15-00-51](https://github.com/hobronc/afs/assets/45543141/e79fc6d8-70c3-4de8-81b5-3842e02982d8)
+
 
 ## Help page
 ![Screenshot from 2023-06-02 14-03-29](https://github.com/hobronc/afs/assets/45543141/fc2d4c71-7e52-46a0-9630-6b6769360a17)
