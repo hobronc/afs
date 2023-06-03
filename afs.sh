@@ -5,29 +5,46 @@ work_folder='/tmp/afs-'$RANDOM
  
 mkdir $work_folder
 cd $work_folder || exit
- 
-FZF_LOCATION='/usr/bin/fzf'
-NALA_LOCATION='/usr/bin/nala'
-if [[ ! -f "$FZF_LOCATION" || ! -f "$NALA_LOCATION" ]]; then
-    tput setaf 2; echo -e "This script has two dependencies: \n   FZF - fuzzy finder package \n   nala - apt layer"; tput sgr0
-    tput setaf 2; echo -e "Do you wish to install it now? (y/n)"; tput sgr0
-    read -r confirmation
-    if [[ $confirmation == "y" ]]; then
-        sudo apt install fzf nala && tput setaf 2; echo -e "\nInstallation succesful, you can run the script again."; tput sgr0
+
+###Check if fzf is avaible, if not the script will propose to install it.
+if ! command -v fzf &> /dev/null ; then
+    tput setaf 2; echo -e "\nThis script has one dependencies: \n    FZF - fuzzy finder package \n    And Optionally (recomended)): nala - Commandline frontend for apt."; tput sgr0
+    tput setaf 3; echo -e "\nDo you wish to install fzf now? (y/n)"; tput sgr0
+    read -r confirmation_fzf
+        if [[ $confirmation_fzf == "y" ]]; then
+            sudo apt install fzf && tput setaf 2 
+        fi    
+    echo -e "\nInstallation of FZF done.\n"; tput sgr0
+
+    if ! command -v nala &> /dev/null ; then
+    tput setaf 3; echo -e "Do you wish to try installing nala now? (y/n)"; tput sgr0
+    read -r confirmation_nala
+        if [[ $confirmation_nala == "y" ]]; then
+            sudo apt install nala && tput setaf 2 
+        fi
         
-    else
-        exit
+    echo -e "\nInstallation of nala is done."; tput sgr0
+
     fi
 fi
+
+###Check if nala is avaible, if not the script will use apt instead.
+if command -v nala &> /dev/null ; then
+    apt_frontend='nala'
+    tput setaf 2; echo -e "nala - the commandline frontend for apt is not present we reccomend using it instead of apt."; tput sgr0
+else
+    apt_frontend='apt'
+fi
+
+
 ### SET variables if the flatpak and snap package manager is installed
-FLATPAK_LOCATION='/usr/bin/flatpak'
 FLATPAK_ENABLE='0'
-if [[ -f "$FLATPAK_LOCATION" ]]; then
+if command -v flatpak &> /dev/null ; then
     FLATPAK_ENABLE='1'
 fi
-SNAP_LOCATION='/usr/bin/snap'
+
 SNAP_ENABLE='0'
-if [[ -f "$SNAP_LOCATION" ]]; then
+if command -v snap &> /dev/null ; then
     SNAP_ENABLE='2'
 fi
  
@@ -90,9 +107,14 @@ updater(){
             tput setaf 2; sudo echo -e  "Authentication OK"; tput sgr0
             echo
             tput setaf 5; echo -e "\n   --- Updating with APT: ---"; tput sgr0
-                #sudo nala update
-                sudo nala upgrade -y
- 
+                
+                if command -v nala &> /dev/null ; then
+                    sudo nala upgrade -y
+                else
+                    sudo apt update && sudo apt upgrade -y
+                fi
+                
+                 
             if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
                 tput setaf 4; echo -e "\n   --- Updating Flatpaks: ---"; tput sgr0
                 flatpak update -y
@@ -109,8 +131,7 @@ updater(){
             tput setaf 2; sudo echo -e  "Authentication OK"; tput sgr0
             echo
             tput setaf 5; echo -e "\n   --- Updating with APT: ---"; tput sgr0
-                #sudo nala update
-                sudo nala upgrade -y
+                sudo $apt_frontend upgrade -y
                 close_delete wait
         ;;
         f|3)
@@ -153,18 +174,16 @@ updater(){
 ### FUNCTION - list all the installed packages on the system - add Flatpak and Snap packages to if they are avaibled
 lister_installed() {
  
-list_installed_file="$work_folder/installed"
-apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
- 
-if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-    flatpak list --columns=app | awk '{print "O FLAT " $1}'>>$list_installed_file
-fi
- 
-if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-    snap list | awk '{print "O SNAP " $1}'>>$list_installed_file
-fi
- 
-#list_installed=`cat $list_installed_file`
+    list_installed_file="$work_folder/installed"
+    apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
+     
+    if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
+        flatpak list --columns=app | awk '{print "O FLAT " $1}'>>$list_installed_file
+    fi
+     
+    if [[ "$SNAP_ENABLE" -eq "2" ]]; then
+        snap list | awk '{print "O SNAP " $1}'>>$list_installed_file
+    fi
  
 }
  
@@ -367,7 +386,7 @@ install_packages() {
     # Installing regular packages with APT
     if [ $APT_package_number -gt "0" ]; then
         tput setaf 5; echo -e "Installing packages from standard repository:\n"; tput sgr0
-        sudo nala install $APT_packages
+        sudo $apt_frontend install $APT_packages
         tput setaf 5; echo -e  "APT installation: DONE!\n"; tput sgr0
     fi
  
@@ -403,7 +422,7 @@ remove_packages() {
     # Remove regular packages with APT
     if [ $APT_package_number -gt "0" ]; then
         tput setaf 5; echo -e "Remove packages from standard repository:\n"; tput sgr0
-        sudo nala remove $APT_packages
+        sudo $apt_frontend remove $APT_packages
         tput setaf 5; echo -e  "\nAPT removal: DONE!\n"; tput sgr0
     fi
  
@@ -446,7 +465,7 @@ setup() {
         tput setaf 3; echo -e "\n No service was selected to install"; tput sgr0
         close_delete
     else
-        sudo nala install $setup_install_package_names
+        sudo $apt_frontend install $setup_install_package_names
     fi
     ### IF the install was correct the binaries should be in place so we can add the flathub repo
     if [[ -f "$FLATPAK_LOCATION" ]]; then
@@ -559,7 +578,7 @@ menu_main() {
         h|--help)
             echo -e "This is a simple bash script to update/install/remove from 3 sources: regular packages, Flatpaks and Snaps together."
             echo -e "Dependencies: fzf - fuzzy finder. If the fzf binary is not avaible the sript propose to install it."
-            echo -e "	           nala - Commandline frontend for the apt package manager"
+            echo -e "	 optional: nala - Commandline frontend for the apt package manager"
             echo
             echo -e "There is three main option in the script:"
             echo
