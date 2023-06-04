@@ -31,9 +31,9 @@ fi
 ###Check if nala is avaible, if not the script will use apt instead.
 if command -v nala &> /dev/null ; then
     apt_frontend='nala'
-    tput setaf 2; echo -e "nala - the commandline frontend for apt is not present we reccomend using it instead of apt."; tput sgr0
 else
     apt_frontend='apt'
+    tput setaf 2; echo -e "nala - the commandline frontend for apt is not present we reccomend using it instead of apt."; tput sgr0
 fi
 
 
