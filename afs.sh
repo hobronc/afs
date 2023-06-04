@@ -244,13 +244,14 @@ FZF() {
         list_for_fzf=$(cat $list_installed_file | grep -v "SNAP Name" | grep -v "Listing...")
     fi
     
-    ### COLORIZE THE FZF WITH ANSI COLORS
+	
+    ### COLORIZE THE FZF WITH ANSI COLORS	
     list_for_fzf=$(echo -e "$list_for_fzf" \
-    	| awk -v srch="APT" -v repl="\e[36mAPT \e[0m" '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch="FLAT" -v repl="\e[34mFLAT\e[0m" '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch="SNAP" -v repl="\e[35mSNAP\e[0m" '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch='-' -v repl="\e[93m-\e[0m" '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch='O' -v repl="\e[92mO\e[0m" '{ sub(srch,repl,$0); print $0 }' )
+    	| awk -v srch='APT' -v repl='\\e[36mAPT \\e[0m' '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch='FLAT' -v repl='\\e[34mFLAT\\e[0m' '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch='SNAP' -v repl='\\e[35mSNAP\\e[0m' '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch='-' -v repl='\\e[93m-\\e[0m' '{ sub(srch,repl,$0); print $0 }' \
+    	| awk -v srch='O' -v repl='\\e[92mO\\e[0m' '{ sub(srch,repl,$0); print $0 }' )
     
 
     pkg="$(
