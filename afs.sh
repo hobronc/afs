@@ -33,7 +33,7 @@ if command -v nala &> /dev/null ; then
     apt_frontend='nala'
 else
     apt_frontend='apt'
-    tput setaf 2; echo -e "nala - the commandline frontend for apt is not present we reccomend using it instead of apt."; tput sgr0
+	tput setaf 2; echo -e "nala - the commandline frontend for apt is not present, we reccomend using it instead of apt."; tput sgr0
 fi
 
 
@@ -247,11 +247,11 @@ FZF() {
 	
     ### COLORIZE THE FZF WITH ANSI COLORS	
     list_for_fzf=$(echo -e "$list_for_fzf" \
-    	| awk -v srch='APT' -v repl='\\e[36mAPT \\e[0m' '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch='FLAT' -v repl='\\e[34mFLAT\\e[0m' '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch='SNAP' -v repl='\\e[35mSNAP\\e[0m' '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch='-' -v repl='\\e[93m-\\e[0m' '{ sub(srch,repl,$0); print $0 }' \
-    	| awk -v srch='O' -v repl='\\e[92mO\\e[0m' '{ sub(srch,repl,$0); print $0 }' )
+    	| awk -v srch='APT' -v repl='\\e[36mAPT \\e[0m' '{ sub(srch,repl,$2); print $0 }' \
+    	| awk -v srch='FLAT' -v repl='\\e[34mFLAT\\e[0m' '{ sub(srch,repl,$2); print $0 }' \
+    	| awk -v srch='SNAP' -v repl='\\e[35mSNAP\\e[0m' '{ sub(srch,repl,$2); print $0 }' \
+    	| awk -v srch='-' -v repl='\\e[93m-\\e[0m' '{ sub(srch,repl,$1); print $0 }' \
+    	| awk -v srch='O' -v repl='\\e[92mO\\e[0m' '{ sub(srch,repl,$1); print $0 }' )
     
 
     pkg="$(
