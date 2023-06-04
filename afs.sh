@@ -6,34 +6,61 @@ work_folder='/tmp/afs-'$RANDOM
 mkdir $work_folder
 cd $work_folder || exit
 
+# Setup colors:
+# check if stdout is a terminal...
+if test -t 1; then
+
+    # see if it supports colors...
+    ncolors=$(tput colors)
+
+    if test -n "$ncolors" && test $ncolors -ge 8; then
+        bold="$(tput bold)"
+        underline="$(tput smul)"
+        standout="$(tput smso)"
+        normal="$(tput sgr0)"
+        black="$(tput setaf 0)"
+        red="$(tput setaf 1)"
+        green="$(tput setaf 2)"
+        yellow="$(tput setaf 3)"
+        blue="$(tput setaf 4)"
+        magenta="$(tput setaf 5)"
+        cyan="$(tput setaf 6)"
+        white="$(tput setaf 7)"
+    fi
+fi
+
+
 ###Check if fzf is avaible, if not the script will propose to install it.
 if ! command -v fzf &> /dev/null ; then
-    tput setaf 2; echo -e "\nThis script has one dependencies: \n    FZF - fuzzy finder package \n    And Optionally (recomended)): nala - Commandline frontend for apt."; tput sgr0
-    tput setaf 3; echo -e "\nDo you wish to install fzf now? (y/n)"; tput sgr0
+    echo -e "${green}\nThis script has one dependencies: \n    FZF - fuzzy finder package \n    And Optionally (recomended)): nala - Commandline frontend for apt.${normal}"
+    echo -e "${yellow}\nDo you wish to install fzf now? (y/n)${normal}"
     read -r confirmation_fzf
         if [[ $confirmation_fzf == "y" ]]; then
-            sudo apt install fzf && tput setaf 2 
+            sudo apt install fzf
         fi    
-    echo -e "\nInstallation of FZF done.\n"; tput sgr0
+    echo -e "${green}\nInstallation of FZF done.\n${normal}"
 
     if ! command -v nala &> /dev/null ; then
-    tput setaf 3; echo -e "Do you wish to try installing nala now? (y/n)"; tput sgr0
+    echo -e "${yellow}Do you wish to try installing nala now? (y/n)${normal}"
     read -r confirmation_nala
         if [[ $confirmation_nala == "y" ]]; then
-            sudo apt install nala && tput setaf 2 
+            sudo apt install nala
         fi
         
-    echo -e "\nInstallation of nala is done."; tput sgr0
+    echo -e "${green}\nInstallation of nala is done.${normal}"
 
     fi
 fi
+
+
+
 
 ###Check if nala is avaible, if not the script will use apt instead.
 if command -v nala &> /dev/null ; then
     apt_frontend='nala'
 else
     apt_frontend='apt'
-	tput setaf 2; echo -e "nala - the commandline frontend for apt is not present, we reccomend using it instead of apt."; tput sgr0
+	echo -e "${green}nala - the commandline frontend for apt is not present, we reccomend using it instead of apt.${normal}"
 fi
 
 
@@ -56,43 +83,43 @@ updater(){
     ### First show the installed packages
     # from FLATPAK
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-            tput setaf 4; echo "        --- Flatpak packages: (only apps) ---"; tput sgr0
+            echo -e "${blue}        --- Flatpak packages: (only apps) ---${normal}"
             flatpak list --app
     fi
  
     # from Snaps
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-        tput setaf 6; echo -e "\n        --- Snap packages: ---"; tput sgr0
+        echo -e "${cyan}\n        --- Snap packages: ---${normal}"
         snap list
     fi
     # from the repoes
-    tput setaf 5; echo -e "\n        --- Installed packages (only the number) from the standard repositories: ---"; tput sgr0
+    echo -e "${magenta}\n        --- Installed packages (only the number) from the standard repositories: ---${normal}"
         apt list --installed 2>/dev/null | wc -l
         list_upgradable_apt_file="$work_folder/upgradable_apt"
         apt list --upgradable 2>/dev/null>>$list_upgradable_apt_file
  
         if (( $(cat $list_upgradable_apt_file | wc -l ) == 1 )); then
-            tput setaf 7; echo -e "\nThere is no upgradable package."; tput sgr0
+            echo -e "${white}\nThere is no upgradable package.${normal}"
         else
-        tput setaf 2; echo -e "  - Upgradable packages: - \n"; tput sgr0
+        echo -e "${green}  - Upgradable packages: - \n${normal}"
         cat $list_upgradable_apt_file
         fi
  
     if [ -z $update_method ]; then
         ### The updated ask for the options, the $FLAT_SNAP_ENABLE variable define the availability of Flatpak and Snaps
-        tput setaf 3; echo -e "\nDo you wish to update?"; tput sgr0
+        echo -e "${yellow}\nDo you wish to update?${normal}"
         case $FLAT_SNAP_ENABLE in
             0) ### no flatpak or snap avaible
-                tput setaf 2; echo -e " 1 or a = ALL (ther is only APT avaible) \n 2 or r = Apt only"; tput sgr0
+                echo -e "${green} 1 or a = ALL (ther is only APT avaible) \n 2 or r = Apt only${normal}"
             ;;
             1) # only flatpak is avaible
-                tput setaf 2; echo -e " 1 or a = ALL \n 2 or r = Apt only \n 3 or f = FLATPAK only\n<SNAP is not avaible>"; tput sgr0
+                echo -e "${green} 1 or a = ALL \n 2 or r = Apt only \n 3 or f = FLATPAK only\n<SNAP is not avaible>${normal}"
             ;;
             2) # only snap is avaible
-                tput setaf 2; echo -e " 1 or a = ALL \n 2 or r = Apt only \n 4 or s = SNAP only\n<FLATPAK is not avaible>"; tput sgr0
+                echo -e "${green} 1 or a = ALL \n 2 or r = Apt only \n 4 or s = SNAP only\n<FLATPAK is not avaible>${normal}"
             ;;
             3) # both are avaible
-                tput setaf 2; echo -e " 1 or a = ALL \n 2 or r = Apt only \n 3 or f = FLATPAK only\n 4 or s = SNAP only"; tput sgr0
+                echo -e "${green} 1 or a = ALL \n 2 or r = Apt only \n 3 or f = FLATPAK only\n 4 or s = SNAP only${normal}"
             ;;
         esac
  
@@ -103,10 +130,10 @@ updater(){
  
     case $update_method in
         a|1)
-            tput setaf 1; echo -e  "Authentication required! Password:"; tput sgr0
-            tput setaf 2; sudo echo -e  "Authentication OK"; tput sgr0
-            echo
-            tput setaf 5; echo -e "\n   --- Updating with APT: ---"; tput sgr0
+            echo -e "${red}Authentication required! Password:${normal}"
+            sudo echo -e "${red}Authentication OK\n${normal}"
+            
+            echo -e "${magenta}\n   --- Updating with APT: ---${normal}"
                 
                 if command -v nala &> /dev/null ; then
                     sudo nala upgrade -y
@@ -116,53 +143,51 @@ updater(){
                 
                  
             if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-                tput setaf 4; echo -e "\n   --- Updating Flatpaks: ---"; tput sgr0
+                echo -e "${blue}\n   --- Updating Flatpaks: ---${normal}"
                 flatpak update -y
             fi
  
             if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-                tput setaf 6; echo -e "\n   --- Updating Snaps: ---"; tput sgr0
+                echo -e "${cyan}\n   --- Updating Snaps: ---${normal}"
                 sudo snap refresh
             fi
             close_delete wait
         ;;
         r|2)
-            tput setaf 1; echo -e  "Authentication required! Password:"; tput sgr0
-            tput setaf 2; sudo echo -e  "Authentication OK"; tput sgr0
-            echo
-            tput setaf 5; echo -e "\n   --- Updating with APT: ---"; tput sgr0
+            echo -e "${red}Authentication required! Password:${normal}"
+            sudo echo -e "${red}Authentication OK\n${normal}"
+
+            echo -e "${magenta}\n   --- Updating with APT: ---${normal}"
                 sudo $apt_frontend upgrade -y
                 close_delete wait
         ;;
         f|3)
             if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-                tput setaf 1; echo -e  "Authentication required! Password:"; tput sgr0
-                tput setaf 2; sudo echo -e  "Authentication OK"; tput sgr0
-                echo
-                tput setaf 4; echo -e "\n   --- Updating Flatpaks: ---"; tput sgr0
+                echo -e "${red}Authentication required! Password:${normal}"
+                sudo echo -e "${red}Authentication OK\n${normal}"
+                echo -e "${blue}\n   --- Updating Flatpaks: ---${normal}"
                     flatpak update -y
                     close_delete wait
             else
-                tput setaf 3; echo -e  "There is no FLATPAK support. Wrong choice!\nExiting..."; tput sgr0
+                echo -e "${yellow}There is no FLATPAK support. Wrong choice!\nExiting...${normal}"
                 close_delete
             fi
  
         ;;
         s|4)
             if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-                tput setaf 1; echo -e  "Authentication required! Password:"; tput sgr0
-                tput setaf 2; sudo echo -e  "Authentication OK"; tput sgr0
-                echo
-                tput setaf 6; echo -e "\n   --- Updating Snaps: ---"; tput sgr0
+                echo -e "${red}Authentication required! Password:${normal}"
+                sudo echo -e "${red}Authentication OK\n${normal}"
+                echo -e "${cyan}\n   --- Updating Snaps: ---${normal}"
                     sudo snap refresh
                     close_delete wait
             else
-                tput setaf 3; echo -e  "There is no SNAP support. Wrong choice!\nExiting..."; tput sgr0
+                echo -e "${yellow}There is no SNAP support. Wrong choice!\nExiting...${normal}"
                 close_delete
             fi
         ;;
         *)
-        tput setaf 3; echo -e "\nUnknown choice. Exiting..."; tput sgr0
+        echo -e "${yellow}\nUnknown choice. Exiting...${normal}"
            close_delete
         ;;
     esac
@@ -191,31 +216,31 @@ search_package_install() {
  
     if [ -z "$search_term" ]; then
         ### Ask for the search term, which to use.
-        tput setaf 2; echo -e "\nPlease provide a search term\n"; tput sgr0
+        echo -e "${green}\nPlease provide a search term\n${normal}"
         read -r search_term
         echo
     else
-        tput setaf 2; echo -e "\nStart searching for $search_term...\n"; tput sgr0
+        echo -e "${green}\nStart searching for $search_term...\n${normal}"
     fi
  
  
     if [ -z $search_term ]; then
-        tput setaf 1; echo -e "No search term provided\nExiting..."; tput sgr0
+        echo -e "${red}No search term provided\nExiting...${normal}"
         close_delete
     fi
  
     search_result_file_full="$work_folder/search_result_full"
  
-    tput setaf 5; echo -e " Search the standard repository"; tput sgr0
+    echo -e "${magenta} Search the standard repository${normal}"
     apt-cache search $search_term | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
  
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-        tput setaf 4; echo -e " Search the Flatpak repos"; tput sgr0
+        echo -e "${blue} Search the Flatpak repos${normal}"
         flatpak search --columns=app,name,description $search_term | awk '{print "- FLAT " $0 "..."}'>>$search_result_file_full
     fi
  
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-        tput setaf 6; echo -e " Search the Snap repos"; tput sgr0
+        echo -e "${cyan} Search the Snap repos${normal}"
         snap search $search_term 2>/dev/null | awk '{$2=$3=$4=""; print "- SNAP " $0 "..."}'>>$search_result_file_full
     fi
  
@@ -356,15 +381,15 @@ FZF() {
     done
  
     if [[ -n $APT_packages ]]; then
-        tput setaf 5; echo -e "\nAPT  packages selected:"; tput sgr0
+        echo -e "${magenta}\nAPT  packages selected:${normal}"
         echo "$APT_packages"
     fi
     if [[ -n $FLAT_packages ]]; then
-        tput setaf 4; echo -e "\nFLAT packages selected:"; tput sgr0
+        echo -e "${blue}\nFLAT packages selected:${normal}"
         echo "$FLAT_packages"
     fi
     if [[ -n $SNAP_packages ]]; then
-        tput setaf 6; echo -e "\nSNAP packages selected:"; tput sgr0
+        echo -e "${cyan}\nSNAP packages selected:${normal}"
         echo "$SNAP_packages"
     fi
     echo
@@ -379,30 +404,30 @@ install_packages() {
  
     # Check for the number of packages selected, only proceed if min 1 is selected in one type
     if [ $APT_package_number -gt "0" ] || [ $SNAP_package_number -gt "0" ] || [ $FLAT_package_number -gt "0" ]; then
-        tput setaf 1; echo -e  "Authentication required! Password:"; tput sgr0
-        tput setaf 2; sudo echo -e  "Authentication OK"; tput sgr0
+        echo -e "${red}Authentication required! Password:${normal}"
+        sudo echo -e "${red}Authentication OK\n${normal}"
         echo
     fi
  
     # Installing regular packages with APT
     if [ $APT_package_number -gt "0" ]; then
-        tput setaf 5; echo -e "Installing packages from standard repository:\n"; tput sgr0
+        echo -e "${magenta}Installing packages from standard repository:\n${normal}"
         sudo $apt_frontend install $APT_packages
-        tput setaf 5; echo -e  "APT installation: DONE!\n"; tput sgr0
+        echo -e "${magenta}APT installation: DONE!\n${normal}"
     fi
  
     # Installing FLATPAKs
     if [ $FLAT_package_number -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
-        tput setaf 4; echo -e "Installing FLATPAK packages:\n"; tput sgr0
+        echo -e "${blue}Installing FLATPAK packages:\n${normal}"
         flatpak install $FLAT_packages
-        tput setaf 4; echo -e  "Flatpak installation: DONE!\n"; tput sgr0
+        echo -e "${blue}Flatpak installation: DONE!\n${normal}"
     fi
  
     # Installing SNAPs
     if [ $SNAP_package_number -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
-        tput setaf 6; echo -e "Installing Snap packages:\n"; tput sgr0
+        echo -e "${cyan}Installing Snap packages:\n${normal}"
         sudo snap install $SNAP_packages
-        tput setaf 6; echo -e  "SNAP installation: DONE!\n"; tput sgr0
+        echo -e "${cyan}SNAP installation: DONE!\n${normal}"
     fi
  
 }
@@ -415,30 +440,29 @@ remove_packages() {
  
     # Check for the number of packages selected, only proceed if min 1 is selected in one type
     if [ $APT_package_number -gt "0" ] || [ $SNAP_package_number -gt "0" ] || [ $FLAT_package_number -gt "0" ]; then
-        tput setaf 1; echo -e  "Authentication required! Password:"; tput sgr0
-        tput setaf 2; sudo echo -e  "Authentication OK"; tput sgr0
-        echo
+        echo -e "${red}Authentication required! Password:${normal}"
+        sudo echo -e "${green}Authentication OK\n${normal}"
     fi
  
     # Remove regular packages with APT
     if [ $APT_package_number -gt "0" ]; then
-        tput setaf 5; echo -e "Remove packages from standard repository:\n"; tput sgr0
+        echo -e "${magenta}Remove packages from standard repository:\n${normal}"
         sudo $apt_frontend remove $APT_packages
-        tput setaf 5; echo -e  "\nAPT removal: DONE!\n"; tput sgr0
+        echo -e "${magenta}\nAPT removal: DONE!\n${normal}"
     fi
  
     # Remove FLATPAKs
     if [ $FLAT_package_number -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
-        tput setaf 4; echo -e "Remove FLATPAK packages:\n"; tput sgr0
+        echo -e "${blue}Remove FLATPAK packages:\n${normal}"
         flatpak remove $FLAT_packages
-        tput setaf 4; echo -e  "\nFlatpak removal: DONE!\n"; tput sgr0
+        echo -e "${blue}\nFlatpak removal: DONE!\n${normal}"
     fi
  
     # Remove SNAPs
     if [ $SNAP_package_number -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
-        tput setaf 6; echo -e "Remove Snap packages:\n"; tput sgr0
+        echo -e "${cyan}Remove Snap packages:\n${normal}"
         sudo snap remove $SNAP_packages
-        tput setaf 6; echo -e  "\nSNAP removal: DONE!\n"; tput sgr0
+        echo -e "${cyan}\nSNAP removal: DONE!\n${normal}"
     fi
  
 }
@@ -447,7 +471,7 @@ remove_packages() {
 setup() {
     setup_install_package_names=""
     ### Ask the user if they want to install Flatpak
-    tput setaf 3; echo -e "\n Do you wish to Install the Flatpak service?\n(y|n)"; tput sgr0
+    echo -e "${yellow}\n Do you wish to Install the Flatpak service?\n(y|n)${normal}"
     read -r flatpak_install
     if [[ $flatpak_install == "y" ]]; then ### if the answer was yes (y) add "flatpak" to the list of packages to install
         setup_install_package_names="$setup_install_package_names "flatpak
@@ -455,7 +479,7 @@ setup() {
     
     
     ### Ask the user if they want to install Snapd
-    tput setaf 3; echo -e "\n Do you wish to Install the Snap service?\n(y|n)"; tput sgr0
+    echo -e "${yellow}\n Do you wish to Install the Snap service?\n(y|n)${normal}"
     read -r snap_install
     if [[ $snap_install == "y" ]]; then ### if the answer was yes (y) add "snapd" to the list of packages to install
         setup_install_package_names="$setup_install_package_names "snapd
@@ -463,7 +487,7 @@ setup() {
     
     ### If no answer is provided we can simply exit
     if [[ $setup_install_package_names == "" ]]; then
-        tput setaf 3; echo -e "\n No service was selected to install"; tput sgr0
+        echo -e "${yellow}\n No service was selected to install${normal}"
         close_delete
     else
         sudo $apt_frontend install $setup_install_package_names
@@ -471,20 +495,20 @@ setup() {
     ### IF the install was correct the binaries should be in place so we can add the flathub repo
     if [[ -f "$FLATPAK_LOCATION" ]]; then
         sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-        tput setaf 3; echo -e "\nFlathub repository added.\n"; tput sgr0
+        echo -e "${yellow}\nFlathub repository added.\n${normal}"
     fi
     if [[ -f "$SNAP_LOCATION" ]]; then
         sudo snap install core
-        tput setaf 3; echo -e "\nSnap core service installed.\n"; tput sgr0
+        echo -e "${yellow}\nSnap core service installed.\n${normal}"
     fi
     
-    tput setaf 3; echo -e "\n Please note that the Flatpak service installation requires a reboot to be fully finished."; tput sgr0
+    echo -e "${yellow}\n Please note that the Flatpak service installation requires a reboot to be fully finished.${normal}"
 }
 
 ### FUNCTION - delete the temp folder at the end
 close_delete() {
     if [[ $1 == "wait" ]]; then
-        tput setaf 2; echo -e "\nDONE!"; tput sgr0
+        echo -e "${green}\nDONE!${normal}"
         read -r
     fi
     cd /
@@ -497,14 +521,14 @@ menu_main() {
  
     ### if an option is provided when the script is lauched then proceed with that option. if $1 was empty show the menu.
     if [ -z $1 ]; then
-        tput setaf 3; echo -e "\n      --- Please choose from the following options: ---\n"; tput sgr0
-        tput setaf 7; echo -e " u|1 - Update the system (APT,Flap,Snap)\n"; tput sgr0
-        tput setaf 7; echo -e " i|2 - Install package (search all available package in the repositories with APT,Flatpak,Snap)\n"; tput sgr0
-        tput setaf 7; echo -e " r|3 - Remove package (search all installed package with APT,Flatpak,Snap)\n"; tput sgr0
+        echo -e "${yellow}\n      --- Please choose from the following options: ---\n${normal}"
+        echo -e "${white} u|1 - Update the system (APT,Flap,Snap)\n${normal}"
+        echo -e "${white} i|2 - Install package (search all available package in the repositories with APT,Flatpak,Snap)\n${normal}"
+        echo -e "${white} r|3 - Remove package (search all installed package with APT,Flatpak,Snap)\n${normal}"
         if [[ $FLAT_SNAP_ENABLE != "3" ]]; then
-            tput setaf 7; echo -e " s   - Setup - Enable the Flatpak and Snap package services\n"; tput sgr0
+            echo -e "${white} s   - Setup - Enable the Flatpak and Snap package services\n${normal}"
         fi
-        tput setaf 7; echo -e " h|? - Help page"; tput sgr0
+        echo -e "${white} h|? - Help page${normal}"
         echo
         
         read -r menu_selection
@@ -543,7 +567,7 @@ menu_main() {
             search_package_install $search_term ## call the search function
             FZF install    ## call the FZF function with the install argument
  
-            tput setaf 3; echo -e "Do you want to continue installign the selected packages? [Y/n]"; tput sgr0
+            echo -e "${yellow}Do you want to continue installign the selected packages? [Y/n]${normal}"
             read -r proceed_confirmation
                 case $proceed_confirmation in
                     y|Y)
@@ -551,7 +575,7 @@ menu_main() {
                         close_delete wait
                     ;;
                     *)
-                        tput setaf 1; echo -e "Installation interrupted, exiting...\n"; tput sgr0
+                        echo -e "${red}Installation interrupted, exiting...\n${normal}"
                         close_delete
                     ;;
                 esac
@@ -560,14 +584,14 @@ menu_main() {
             lister_installed ## call the installed packages (list creaton) function
             FZF remove ### call the fzf function with the remove argument
  
-            tput setaf 3; echo -e "\nDo you want to continue removing the selected packages? [Y/n]"; tput sgr0
+            echo -e "${yellow}\nDo you want to continue removing the selected packages? [Y/n]${normal}"
             read -r proceed_confirmation
                 case $proceed_confirmation in
                     y|Y)
                         remove_packages
                     ;;
                     *)
-                        tput setaf 1; echo -e "Remove interrupted, exiting...\n"; tput sgr0
+                        echo -e "${red}Remove interrupted, exiting...\n${normal}"
                     ;;
                 esac
             close_delete wait
@@ -611,7 +635,7 @@ menu_main() {
             echo
         ;;
         *)
-        tput setaf 1; echo -e "\nNo option provided exiting..."; tput sgr0
+        echo -e "${red}\nNo option provided exiting...${normal}"
         close_delete
         ;; 
     esac
