@@ -493,11 +493,11 @@ setup() {
         sudo $apt_frontend install $setup_install_package_names
     fi
     ### IF the install was correct the binaries should be in place so we can add the flathub repo
-    if [[ -f "$FLATPAK_LOCATION" ]]; then
+    if command -v flatpak &> /dev/null ; then
         sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
         echo -e "${yellow}\nFlathub repository added.\n${normal}"
     fi
-    if [[ -f "$SNAP_LOCATION" ]]; then
+    if command -v snap &> /dev/null ; then
         sudo snap install core
         echo -e "${yellow}\nSnap core service installed.\n${normal}"
     fi
