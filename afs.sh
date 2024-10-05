@@ -6,6 +6,8 @@ work_folder='/tmp/afs-'$RANDOM
 mkdir $work_folder
 cd $work_folder || exit
 
+
+
 # Setup colors:
 # check if stdout is a terminal...
 if test -t 1; then
@@ -83,17 +85,17 @@ updater(){
     ### First show the installed packages
     # from FLATPAK
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-            echo -e "${blue}        --- Flatpak packages: (only apps) ---${normal}"
+            echo -e "${blue}        --- Flatpak packages: (only apps) ---\n${normal}"
             flatpak list --app
     fi
  
     # from Snaps
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-        echo -e "${cyan}\n        --- Snap packages: ---${normal}"
+        echo -e "${cyan}\n        --- Snap packages: ---\n${normal}"
         snap list
     fi
     # from the repoes
-    echo -e "${magenta}\n        --- Installed packages (only the number) from the standard repositories: ---${normal}"
+    echo -e "${magenta}\n        --- Installed packages (only the number) from the standard repositories: ---\n${normal}"
         apt list --installed 2>/dev/null | wc -l
         list_upgradable_apt_file="$work_folder/upgradable_apt"
         apt list --upgradable 2>/dev/null>>$list_upgradable_apt_file
@@ -133,7 +135,7 @@ updater(){
             echo -e "${red}Authentication required! Password:${normal}"
             sudo echo -e "${red}Authentication OK\n${normal}"
             
-            echo -e "${magenta}\n   --- Updating with APT: ---${normal}"
+            echo -e "${magenta}\n   --- Updating with APT: ---\n${normal}"
                 
                 if command -v nala &> /dev/null ; then
                     sudo nala upgrade -y
@@ -143,12 +145,12 @@ updater(){
                 
                  
             if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
-                echo -e "${blue}\n   --- Updating Flatpaks: ---${normal}"
+                echo -e "${blue}\n   --- Updating Flatpaks: ---\n${normal}"
                 flatpak update -y
             fi
  
             if [[ "$SNAP_ENABLE" -eq "2" ]]; then
-                echo -e "${cyan}\n   --- Updating Snaps: ---${normal}"
+                echo -e "${cyan}\n   --- Updating Snaps: ---\n${normal}"
                 sudo snap refresh
             fi
             close_delete wait
@@ -485,7 +487,7 @@ setup() {
         setup_install_package_names="$setup_install_package_names "snapd
     fi
     
-    ### If no answer is provided we can simply exit
+    ### If no correct answer is provided we can simply exit
     if [[ $setup_install_package_names == "" ]]; then
         echo -e "${yellow}\n No service was selected to install${normal}"
         close_delete
@@ -493,11 +495,11 @@ setup() {
         sudo $apt_frontend install $setup_install_package_names
     fi
     ### IF the install was correct the binaries should be in place so we can add the flathub repo
-    if command -v flatpak &> /dev/null ; then
+    if [[ -f "$FLATPAK_LOCATION" ]]; then
         sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
         echo -e "${yellow}\nFlathub repository added.\n${normal}"
     fi
-    if command -v snap &> /dev/null ; then
+    if [[ -f "$SNAP_LOCATION" ]]; then
         sudo snap install core
         echo -e "${yellow}\nSnap core service installed.\n${normal}"
     fi
@@ -546,11 +548,17 @@ menu_main() {
         # move cursor to the top left of the terminal
         tput cup 0 0
  
-    else ### if there were an argument in $1 then us that as the choice
+    else ### if there were an argument in $1 then use that as the choice
         menu_selection=$1
     fi
  
     case $menu_selection in
+    
+        ua|uu|update-all|0)
+            update_method=1
+            updater
+            close_delete wait
+        ;;
         u|update|1)
             if [[ -n $2 ]];then ### set the update method if a second argument was given
                 update_method=$2
@@ -616,6 +624,8 @@ menu_main() {
             echo -e "Where you can select from the previously mentioned options."
             echo -e "Or you can launch the scipt with arguments."
             echo
+            echo -e "- ua|uu|update-all|0 - Update all (doesn't require a second argument, it will launch the update all function (APT,Flatpak,Snap))"
+            echo
             echo -e "- u|update|1 - Update (if a second arguent was given that will be used as the update method)"
             echo -e "  second arguments could be: (check all avaible options in the update menu)"
             echo -e "    (1 or a) = ALL (APT,Flatpak,Snap)\n    (2 or r) = Apt only \n    (3 or f) = FLATPAK only\n    (4 or s) = SNAP only"
@@ -628,7 +638,7 @@ menu_main() {
             echo
             echo -e "example: afs.sh i - launch the install menu. will ask for a search term directly"
             echo -e "example: afs.sh i <search term> - will search for the <search term> in the standard repositeories, Flathub, Snap"
-            echo -e "example: afs.sh u a - ALL method will be used t0o update the system - Apt,Flatpak,Snap"
+            echo -e "example: afs.sh u a - ALL methods will be used to update the system - Apt,Flatpak,Snap"
             echo
             echo -e "- s|setup - Setup"
             echo -e "    You can setup/enable the Flatpak and Snap repositories from the script"
