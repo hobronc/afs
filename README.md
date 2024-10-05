@@ -4,10 +4,11 @@ Wrapper for APT, Flatpak and Snap
 
 
             This is a simple bash script to update/install/remove from 3 sources: regular packages, Flatpaks and Snaps together."
-            Dependencies: fzf - fuzzy finder. If the fzf binary is not avaible the sript propose to install it.
-                          nala - Commandline frontend for the apt package manager"
+            Dependencies: 
+            			mandatory: fzf - fuzzy finder. If the fzf binary is not avaible the sript propose to install it.
+                        recomended: nala - Commandline frontend for the apt package manager"
             
-            There is three main option in the script:"
+            There are three main option in the script:"
             
                 1 - Update the system"
                 2 - Install packages. Search in the Ubuntu/Debian/etc. repositories with apt. And also search in the Flatpak (flathub), and Snap repos"
@@ -17,6 +18,8 @@ Wrapper for APT, Flatpak and Snap
             If there is no argument when the script is launched you are presented with a menu."
             Where you can select from the previously mentioned options."
             Or you can launch the scipt with arguments."
+
+			- ua|uu|update-all|0 - Update with all available methods (apt,flatpak,snap)
             
             - u|update|1 - Update (if a second arguent was given that will be used as the update method)"
               second arguments could be: (check all avaible options in the update menu)"
