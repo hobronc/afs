@@ -618,6 +618,8 @@ menu_main() {
             echo -e "    1 - Update the system"
             echo -e "    2 - Install packages. Search in the Ubuntu/Debian/etc. repositories with apt . And also search in the Flatpak (flathub), and Snap repos"
             echo -e "    3 - Remove packages. List all packages installed with FZF (fuzzyfinder) and remove them with the appropriate package manager."
+            echo
+			echo -e "the forth option is the setup"
             echo -e "    4 - Setup - Enable the Flatpak and Snap package services"
             echo
             echo -e "If there is no argument when the script is launched you are presented with a menu."
