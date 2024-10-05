@@ -3,10 +3,10 @@ Wrapper for APT, Flatpak and Snap
 
 
 
-            This is a simple bash script to update/install/remove from 3 sources: regular packages, Flatpaks and Snaps together."
+            This is a simple bash script to update/install/remove from 3 sources: regular packages with apt, Flatpaks and Snaps together."
             Dependencies: 
-            	mandatory: fzf - fuzzy finder. If the fzf binary is not avaible the sript propose to install it.
-                        recomended: nala - Commandline frontend for the apt package manager"
+            	mandatory: fzf - fuzzy finder. If the fzf binary is not available the sript propose to install it.
+                        recommended: nala - Command line frontend for the apt package manager"
             
             There are three main option in the script:"
             
