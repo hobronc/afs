@@ -15,12 +15,12 @@ if test -t 1; then
     # see if it supports colors...
     ncolors=$(tput colors)
 
-    if test -n "$ncolors" && test $ncolors -ge 8; then
-        bold="$(tput bold)"
-        underline="$(tput smul)"
-        standout="$(tput smso)"
+    if test -n "$ncolors" && test "$ncolors" -ge 8; then
+        #bold="$(tput bold)"
+        #underline="$(tput smul)"
+        #standout="$(tput smso)"
         normal="$(tput sgr0)"
-        black="$(tput setaf 0)"
+        #black="$(tput setaf 0)"
         red="$(tput setaf 1)"
         green="$(tput setaf 2)"
         yellow="$(tput setaf 3)"
@@ -78,7 +78,7 @@ if command -v snap &> /dev/null ; then
 fi
  
 ### create a sum for easier comparasion
-FLAT_SNAP_ENABLE=$(($FLATPAK_ENABLE + $SNAP_ENABLE))
+FLAT_SNAP_ENABLE=$((FLATPAK_ENABLE + SNAP_ENABLE))
  
  
 updater(){
@@ -107,7 +107,7 @@ updater(){
         cat $list_upgradable_apt_file
         fi
  
-    if [ -z $update_method ]; then
+    if [ -z "$update_method" ]; then
         ### The updated ask for the options, the $FLAT_SNAP_ENABLE variable define the availability of Flatpak and Snaps
         echo -e "${yellow}\nDo you wish to update?${normal}"
         case $FLAT_SNAP_ENABLE in
@@ -226,7 +226,7 @@ search_package_install() {
     fi
  
  
-    if [ -z $search_term ]; then
+    if [ -z "$search_term" ]; then
         echo -e "${red}No search term provided\nExiting...${normal}"
         close_delete
     fi
@@ -234,16 +234,16 @@ search_package_install() {
     search_result_file_full="$work_folder/search_result_full"
  
     echo -e "${magenta} Search the standard repository${normal}"
-    apt-cache search $search_term | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
+    apt-cache search "$search_term" | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
  
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         echo -e "${blue} Search the Flatpak repos${normal}"
-        flatpak search --columns=app,name,description $search_term | awk '{print "- FLAT " $0 "..."}'>>$search_result_file_full
+        flatpak search --columns=app,name,description "$search_term" | awk '{print "- FLAT " $0 "..."}'>>$search_result_file_full
     fi
  
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
         echo -e "${cyan} Search the Snap repos${normal}"
-        snap search $search_term 2>/dev/null | awk '{$2=$3=$4=""; print "- SNAP " $0 "..."}'>>$search_result_file_full
+        snap search "$search_term" 2>/dev/null | awk '{$2=$3=$4=""; print "- SNAP " $0 "..."}'>>$search_result_file_full
     fi
  
  
@@ -259,9 +259,9 @@ FZF() {
  
     if [[ $1 == "install" ]]; then
  
-        list_for_fzf=$(cat $search_result_file_full | grep -v 'FLAT No matches found' | grep -v 'SNAP Name  ')
+        list_for_fzf=$(grep -v 'FLAT No matches found' "$search_result_file_full" | grep -v 'SNAP Name  ')
  
-        number_of_result=$(wc -l $search_result_file_full | awk '{ print $1 }')
+        number_of_result=$(wc -l "$search_result_file_full" | awk '{ print $1 }')
  
         if [[ "$number_of_result" -lt "1" ]]; then
             echo -e "\nNo package found. Exiting..."
@@ -349,9 +349,9 @@ FZF() {
  
         selection_result_file="$work_folder/selection_result"
  
-    echo $pkg>>$selection_result_file
+    echo "$pkg">>$selection_result_file
     max_word=$(cat $selection_result_file | wc -w)
-    if [ $max_word -lt "2" ]; then
+    if [ "$max_word" -lt "2" ]; then
         echo -e "\nNo package selected. Exiting..."
         close_delete
     fi
@@ -401,34 +401,34 @@ FZF() {
 install_packages() {
     # determine the word number for every type.
     APT_package_number=$(echo "$APT_packages" | wc -w)
-    FLAT_package_number=$(echo $FLAT_packages | wc -w)
+    FLAT_package_number=$(echo "$FLAT_packages" | wc -w)
     SNAP_package_number=$(echo "$SNAP_packages" | wc -w)
  
     # Check for the number of packages selected, only proceed if min 1 is selected in one type
-    if [ $APT_package_number -gt "0" ] || [ $SNAP_package_number -gt "0" ] || [ $FLAT_package_number -gt "0" ]; then
+    if [ "$APT_package_number" -gt "0" ] || [ "$SNAP_package_number" -gt "0" ] || [ "$FLAT_package_number" -gt "0" ]; then
         echo -e "${red}Authentication required! Password:${normal}"
         sudo echo -e "${red}Authentication OK\n${normal}"
         echo
     fi
  
     # Installing regular packages with APT
-    if [ $APT_package_number -gt "0" ]; then
+    if [ "$APT_package_number" -gt "0" ]; then
         echo -e "${magenta}Installing packages from standard repository:\n${normal}"
-        sudo $apt_frontend install $APT_packages
+        sudo $apt_frontend install "$APT_packages"
         echo -e "${magenta}APT installation: DONE!\n${normal}"
     fi
  
     # Installing FLATPAKs
-    if [ $FLAT_package_number -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
+    if [ "$FLAT_package_number" -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
         echo -e "${blue}Installing FLATPAK packages:\n${normal}"
-        flatpak install $FLAT_packages
+        flatpak install "$FLAT_packages"
         echo -e "${blue}Flatpak installation: DONE!\n${normal}"
     fi
  
     # Installing SNAPs
-    if [ $SNAP_package_number -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
+    if [ "$SNAP_package_number" -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
         echo -e "${cyan}Installing Snap packages:\n${normal}"
-        sudo snap install $SNAP_packages
+        sudo snap install "$SNAP_packages"
         echo -e "${cyan}SNAP installation: DONE!\n${normal}"
     fi
  
@@ -436,34 +436,34 @@ install_packages() {
  
 remove_packages() {
     # determine the word number for every type.
-    APT_package_number=$(echo $APT_packages | wc -w)
-    FLAT_package_number=$(echo $FLAT_packages | wc -w)
-    SNAP_package_number=$(echo $SNAP_packages | wc -w)
+    APT_package_number=$(echo "$APT_packages" | wc -w)
+    FLAT_package_number=$(echo "$FLAT_packages" | wc -w)
+    SNAP_package_number=$(echo "$SNAP_packages" | wc -w)
  
     # Check for the number of packages selected, only proceed if min 1 is selected in one type
-    if [ $APT_package_number -gt "0" ] || [ $SNAP_package_number -gt "0" ] || [ $FLAT_package_number -gt "0" ]; then
+    if [ "$APT_package_number" -gt "0" ] || [ "$SNAP_package_number" -gt "0" ] || [ "$FLAT_package_number" -gt "0" ]; then
         echo -e "${red}Authentication required! Password:${normal}"
         sudo echo -e "${green}Authentication OK\n${normal}"
     fi
  
     # Remove regular packages with APT
-    if [ $APT_package_number -gt "0" ]; then
+    if [ "$APT_package_number" -gt "0" ]; then
         echo -e "${magenta}Remove packages from standard repository:\n${normal}"
-        sudo $apt_frontend remove $APT_packages
+        sudo $apt_frontend remove "$APT_packages"
         echo -e "${magenta}\nAPT removal: DONE!\n${normal}"
     fi
  
     # Remove FLATPAKs
-    if [ $FLAT_package_number -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
+    if [ "$FLAT_package_number" -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
         echo -e "${blue}Remove FLATPAK packages:\n${normal}"
-        flatpak remove $FLAT_packages
+        flatpak remove "$FLAT_packages"
         echo -e "${blue}\nFlatpak removal: DONE!\n${normal}"
     fi
  
     # Remove SNAPs
-    if [ $SNAP_package_number -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
+    if [ "$SNAP_package_number" -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
         echo -e "${cyan}Remove Snap packages:\n${normal}"
-        sudo snap remove $SNAP_packages
+        sudo snap remove "$SNAP_packages"
         echo -e "${cyan}\nSNAP removal: DONE!\n${normal}"
     fi
  
@@ -492,7 +492,7 @@ setup() {
         echo -e "${yellow}\n No service was selected to install${normal}"
         close_delete
     else
-        sudo $apt_frontend install $setup_install_package_names
+        sudo $apt_frontend install "$setup_install_package_names"
     fi
     ### IF the install was correct the binaries should be in place so we can add the flathub repo
     if [[ -f "$FLATPAK_LOCATION" ]]; then
@@ -515,14 +515,14 @@ close_delete() {
     fi
     cd /
     rm -rf $work_folder
-    exit 0
+    #exit 0
 }
  
 ###  Menu function.
 menu_main() {
  
     ### if an option is provided when the script is lauched then proceed with that option. if $1 was empty show the menu.
-    if [ -z $1 ]; then
+    if [ -z "$1" ]; then
         echo -e "${yellow}\n      --- Please choose from the following options: ---\n${normal}"
         echo -e "${white} u|1 - Update the system (APT,Flap,Snap)\n${normal}"
         echo -e "${white} i|2 - Install package (search all available package in the repositories with APT,Flatpak,Snap)\n${normal}"
@@ -572,7 +572,7 @@ menu_main() {
             if [[ -n $2 ]];then ### only set search_term if the 2. var is not empty.
                 search_term=$2
             fi
-            search_package_install $search_term ## call the search function
+            search_package_install "$search_term" ## call the search function
             FZF install    ## call the FZF function with the install argument
  
             echo -e "${yellow}Do you want to continue installign the selected packages? [Y/n]${normal}"
@@ -655,5 +655,5 @@ menu_main() {
 }
  
 ### Simply launch the main menu
-menu_main $1 $2
+menu_main "$1" "$2"
  
