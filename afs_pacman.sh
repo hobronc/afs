@@ -31,13 +31,15 @@ if test -t 1; then
     fi
 fi
 
+
+
+
+
+
 ###Check what package manager is available
 if command -v nala &> /dev/null ; then
-    install_command='nala install'
-    remove_command='nala remove'
-    upgrade_command='nala upgrade -y'
+    package_manager_type='nala'
 
-    package_manager_type='apt'
     text_packagemanager='NALA'
     text_update="\n   --- Updating with NALA: ---\n"
 
@@ -54,7 +56,7 @@ elif command -v apt &> /dev/null ; then
 
 elif command -v yay &> /dev/null ; then
     install_command='yay -S'
-    remove_command='sudo pacman -Rs'
+    remove_command='yay -Rs'
     upgrade_command='yay -Syu'   
 
     package_manager_type='yay'
@@ -71,6 +73,37 @@ elif command -v pacman &> /dev/null ; then
     text_update="\n   --- Updating with PACMAN: ---\n"
 
 fi
+
+
+
+commands() {
+    case $package_manager_type in
+        nala)
+            case $1 in
+                install)
+                    nala install $2
+                ;;
+                remove)
+                    nala remove $2
+                ;;
+                upgrade)
+                    nala upgrade -y $2
+                ;;
+            esac
+        ;;
+        yay)
+            case $1 in
+                install)
+                    yay -S $2
+                ;;
+            esac
+        ;;
+    esac
+
+}
+
+listtest="htop btop"
+commands install "$listtest"
 
 
 
@@ -143,6 +176,9 @@ updater(){
             fi
         else
             pacman -Q 2>/dev/null | wc -l
+            echo
+            checkupdates
+            echo
         fi
 
     if [ -z "$update_method" ]; then
@@ -284,9 +320,8 @@ search_package_install() {
 
     elif [[ "$package_manager_type" == "yay" ]]; then
         yay --singlelineresults --topdown -Ss "$search_term" | awk -F/ '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
-    else  
-    ### TODO - pacman is not set up with one line output  
-        pacman -Ss "$search_term" | awk '{print "- PAC " $0 "..."}'>>$search_result_file_full
+    elif [[ "$package_manager_type" == "pacman" ]]; then
+        pacman -Ss "$search_term" | paste -d '' - -  | awk -F/ '{print $2" "$1}' | awk '{print "- PAC " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
     fi
 
 
