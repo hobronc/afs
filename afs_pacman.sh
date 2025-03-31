@@ -679,14 +679,16 @@ setup() {
         setup_install_package_names+='flatpak '
     fi
     
-    
-    ### Ask the user if they want to install Snapd
-    echo -e "${yellow}\n Do you wish to Install the Snap service?\n(y|n)${normal}"
-    read -r snap_install
-    if [[ $snap_install == "y" ]]; then ### if the answer was yes (y) add "snapd" to the list of packages to install
-        setup_install_package_names+='snapd '
+    if [[ $package_manager_type == "apt" || $package_manager_type == "nala" ]]; then
+        ### Ask the user if they want to install Snapd
+        echo -e "${yellow}\n Do you wish to Install the Snap service?\n(y|n)${normal}"
+        read -r snap_install
+        if [[ $snap_install == "y" ]]; then ### if the answer was yes (y) add "snapd" to the list of packages to install
+            setup_install_package_names+='snapd '
+        fi
+    else
+        echo -e "${red}\n Setup for SNAP service is not provided on Arch based systems${normal}"
     fi
-    
     ### If no correct answer is provided we can simply exit
     if [[ $setup_install_package_names == "" ]]; then
         echo -e "${yellow}\n No service was selected to install${normal}"
@@ -695,8 +697,9 @@ setup() {
         # shellcheck disable=SC2086
         commands_f install $setup_install_package_names
     fi
+    ### TODO - the check for Flatpak and Snap is outdated
     ### IF the install was correct the binaries should be in place so we can add the flathub repo
-    if [[ -f "$FLATPAK_LOCATION" ]]; then
+    if [[ -f $FLATPAK_LOCATION ]]; then
         sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
         echo -e "${yellow}\nFlathub repository added.\n${normal}"
     fi
@@ -725,8 +728,8 @@ menu_main() {
     ### if an option is provided when the script is lauched then proceed with that option. if $1 was empty show the menu.
     if [ -z "$1" ]; then
         echo -e "${yellow}\n      --- Please choose from the following options: ---\n${normal}"
-        echo -e "${white} u|1 - Update the system (APT,Flap,Snap)\n${normal}"
-        echo -e "${white} i|2 - Install package (search all available package in the repositories with APT,Flatpak,Snap)\n${normal}"
+        echo -e "${white} u|1 - Update the system ($text_packagemanager,Flap,Snap)\n${normal}"
+        echo -e "${white} i|2 - Install package (search all available package in the repositories with $text_packagemanager,Flatpak,Snap)\n${normal}"
         echo -e "${white} r|3 - Remove package (search all installed package with APT,Flatpak,Snap)\n${normal}"
         if [[ $FLAT_SNAP_ENABLE != "3" ]]; then
             echo -e "${white} s   - Setup - Enable the Flatpak and Snap package services\n${normal}"
@@ -770,7 +773,7 @@ menu_main() {
             close_delete wait
         ;;
         i|install|2)
-            lister_installed ## call the installed packages (list creaton) function
+            lister_installed ## call the installed packages (list creation) function
  
             if [[ -n $2 ]];then ### only set search_term if the 2. var is not empty.
                 search_term=$2
