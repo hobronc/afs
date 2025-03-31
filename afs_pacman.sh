@@ -38,45 +38,36 @@ fi
 
 ###Check what package manager is available
 if command -v nala &> /dev/null ; then
+    
     package_manager_type='nala'
 
     text_packagemanager='NALA'
-    text_update="\n   --- Updating with NALA: ---\n"
 
 elif command -v apt &> /dev/null ; then
 	echo -e "${green}nala - the commandline frontend for apt is not present, we reccomend using it instead of apt.${normal}"
 
-    install_command='sudo apt install'
-    remove_command='sudo apt remove'
-    upgrade_command='sudo apt update && sudo apt ugprade -y'
-
     package_manager_type='apt'
+
     text_packagemanager='APT'
-    text_update="\n   --- Updating with APT: ---\n"
 
 elif command -v yay &> /dev/null ; then
-    install_command='yay -S'
-    remove_command='yay -Rs'
-    upgrade_command='yay -Syu'   
 
     package_manager_type='yay'
+
     text_packagemanager='YAY'
-    text_update="\n   --- Updating with YAY: ---\n"
 
 elif command -v pacman &> /dev/null ; then
-    install_command='sudo pacman -S'
-    remove_command='sudo pacman -Rs'
-    upgrade_command='sudo pacman -Syu'
+	echo -e "${green}yay is not present, we reccomend using it instead of pacman${normal}"
 
     package_manager_type='pacman'
+
     text_packagemanager='PACMAN'
-    text_update="\n   --- Updating with PACMAN: ---\n"
 
 fi
 
 
 
-commands() {
+commands_f() {
     case $package_manager_type in
         nala)
             case $1 in
@@ -89,21 +80,129 @@ commands() {
                 upgrade)
                     nala upgrade -y $2
                 ;;
+                list_installed)
+                    apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
+                ;;
+                search_create_list)
+                    apt-cache search "$search_term" | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
+                ;;
+                update_list_packages)
+                    apt list --installed 2>/dev/null | wc -l
+                    list_upgradable_apt_file="$work_folder/upgradable_apt"
+                    apt list --upgradable 2>/dev/null>>$list_upgradable_apt_file
+            
+                    if (( $(cat $list_upgradable_apt_file | wc -l ) == 1 )); then
+                        echo -e "${white}\nThere is no upgradable package.${normal}"
+                    else
+                    echo -e "${green}  - Upgradable packages: - \n${normal}"
+                    cat $list_upgradable_apt_file
+                    fi
+                ;;
             esac
+        ;;
+        apt)
+            case $1 in
+                install)
+                    sudo apt install $2
+                ;;
+                remove)
+                    sudo apt remove $2
+                ;;
+                upgrade)
+                    sudo apt update && sudo apt ugprade -y
+                ;;
+                list_installed)
+                    apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
+                ;;
+                search_create_list)
+                    apt-cache search "$search_term" | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
+                ;;
+                update_list_packages)
+                    apt list --installed 2>/dev/null | wc -l
+
+                    ### TODO file creation is unnecessary - evaulate in if statement
+                    list_upgradable_apt_file="$work_folder/upgradable_apt"
+                    apt list --upgradable 2>/dev/null>>$list_upgradable_apt_file
+            
+                    if (( $(cat $list_upgradable_apt_file | wc -l ) == 1 )); then
+                        echo -e "${white}\nThere is no upgradable package.${normal}"
+                    else
+                    echo -e "${green}  - Upgradable packages: - \n${normal}"
+                    cat $list_upgradable_apt_file
+                    fi
+                ;;
+            esac
+
+
+
         ;;
         yay)
             case $1 in
                 install)
                     yay -S $2
                 ;;
+                remove)
+                    yay -Rs $2
+                ;;
+                upgrade)
+                    yay
+                ;;
+                list_installed)
+                    yay -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>$list_installed_file 
+                ;;
+                search_create_list)
+                    yay --singlelineresults --topdown -Ss "$search_term" | awk -F/ '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+                ;;
+                update_list_packages)
+                    pacman -Q 2>/dev/null | wc -l
+                    echo
+                    upgradable_list=$(checkupdates)
+                    if [[ $(echo "$upgradable_list" | wc -w ) -gt 0 ]]; then
+                    echo -e "${green}  - Upgradable packages: - \n${normal}"
+                        echo "$upgradable_list"
+                    else
+                        echo -e "${white}\nThere is no upgradable package.${normal}"
+                    fi
+                ;;
             esac
         ;;
+        pacman)
+            case $1 in
+                install)
+                    sudo pacman -S $2
+                ;;
+                remove)
+                    sudo pacman -Rs $2
+                ;;
+                upgrade)
+                    sudo pacman -Syu
+                ;;
+                list_installed)
+                    pacman -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O PAC " $1}'>>$list_installed_file
+                ;;
+                search_create_list)
+                    pacman -Ss "$search_term" | paste -d '' - -  | awk -F/ '{print $2" "$1}' | awk '{print "- PAC " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+                ;;
+                update_list_packages)
+                    pacman -Q 2>/dev/null | wc -l
+                    echo
+                    upgradable_list=$(checkupdates)
+                    if [[ $(echo "$upgradable_list" | wc -w ) -gt 0 ]]; then
+                    echo -e "${green}  - Upgradable packages: - \n${normal}"
+                        echo "$upgradable_list"
+                    else
+                        echo -e "${white}\nThere is no upgradable package.${normal}"
+                    fi
+                ;;
+            esac
+        ;;
+
+
+
+
     esac
 
 }
-
-listtest="htop btop"
-commands install "$listtest"
 
 
 
@@ -160,28 +259,14 @@ updater(){
         echo -e "${cyan}\n        --- Snap packages: ---\n${normal}"
         snap list
     fi
+    
     # from the repoes
     echo -e "${magenta}\n        --- Installed packages (only the number) from the standard repositories: ---\n${normal}"
-        if [[ $package_manager_type == "apt" ]]; then
-        
-            apt list --installed 2>/dev/null | wc -l
-            list_upgradable_apt_file="$work_folder/upgradable_apt"
-            apt list --upgradable 2>/dev/null>>$list_upgradable_apt_file
     
-            if (( $(cat $list_upgradable_apt_file | wc -l ) == 1 )); then
-                echo -e "${white}\nThere is no upgradable package.${normal}"
-            else
-            echo -e "${green}  - Upgradable packages: - \n${normal}"
-            cat $list_upgradable_apt_file
-            fi
-        else
-            pacman -Q 2>/dev/null | wc -l
-            echo
-            checkupdates
-            echo
-        fi
+    commands_f update_list_packages
+       
 
-    if [ -z "$update_method" ]; then
+    if [ -z "$upgrade_method" ]; then
         ### The updated ask for the options, the $FLAT_SNAP_ENABLE variable define the availability of Flatpak and Snaps
         echo -e "${yellow}\nDo you wish to update?${normal}"
         case $FLAT_SNAP_ENABLE in
@@ -200,17 +285,18 @@ updater(){
         esac
  
         ### read for the option
-        read -r update_method
+        read -r upgrade_method
         echo
         fi
  
-    case $update_method in
+    case $upgrade_method in
         a|1)
             echo -e "${red}Authentication required! Password:${normal}"
             sudo echo -e "${red}Authentication OK\n${normal}"
             
-            echo -e "${magenta}$text_update${normal}"
-            $upgrade_command
+            echo -e "${magenta}\n   --- Updating with $text_packagemanager: ---\n${normal}"
+            
+            commands_f upgrade
                 
                  
             if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
@@ -228,9 +314,12 @@ updater(){
             echo -e "${red}Authentication required! Password:${normal}"
             sudo echo -e "${red}Authentication OK\n${normal}"
 
-            echo -e "${magenta}$text_update${normal}"
-            $upgrade_command
-                close_delete wait
+            echo -e "${magenta}\n   --- Updating with $text_packagemanager: ---\n${normal}"
+
+            command_f upgrade
+            
+            close_delete wait
+
         ;;
         f|3)
             if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
@@ -273,16 +362,7 @@ lister_installed() {
  
     list_installed_file="$work_folder/installed"
     
-    if [[ "$package_manager_type" == "apt" ]]; then
-        apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
-    
-    elif [[ "$package_manager_type" == "yay" ]]; then
-        yay -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>$list_installed_file 
-    
-    else
-        pacman -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O PAC " $1}'>>$list_installed_file
-    fi
-
+    commands_f list_installed
 
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         flatpak list --columns=app | awk '{print "O FLAT " $1}'>>$list_installed_file
@@ -315,15 +395,7 @@ search_package_install() {
  
     echo -e "${magenta} Search the standard repository${normal}"
     
-    if [[ "$package_manager_type" == "apt" ]]; then
-        apt-cache search "$search_term" | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
-
-    elif [[ "$package_manager_type" == "yay" ]]; then
-        yay --singlelineresults --topdown -Ss "$search_term" | awk -F/ '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
-    elif [[ "$package_manager_type" == "pacman" ]]; then
-        pacman -Ss "$search_term" | paste -d '' - -  | awk -F/ '{print $2" "$1}' | awk '{print "- PAC " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
-    fi
-
+    commands_f search_create_list
 
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         echo -e "${blue} Search the Flatpak repos${normal}"
@@ -506,7 +578,6 @@ FZF() {
  
     if [[ -n $SYS_packages ]]; then
         echo -e "${magenta}\n$text_packagemanager  packages selected:${normal}"
-        #SYS_packages=$(echo "$SYS_packages" | sed 's/^.\(.*\)/\1/')
         echo "$SYS_packages"
     fi
     if [[ -n $FLAT_packages ]]; then
@@ -538,7 +609,7 @@ install_packages() {
     if [ "$SYS_package_number" -gt "0" ]; then
         echo -e "${magenta}Installing packages from standard repository:\n${normal}"
         # shellcheck disable=SC2086
-        $install_command $SYS_packages
+        commands_f install $SYS_packages
         echo -e "${magenta}$text_packagemanager installation: DONE!\n${normal}"
     fi
  
@@ -575,9 +646,8 @@ remove_packages() {
     # Remove regular packages with APT
     if [ "$SYS_package_number" -gt "0" ]; then
         echo -e "${magenta}Remove packages from standard repository:\n${normal}"
-        echo "$remove_command" "$SYS_packages"
         # shellcheck disable=SC2086
-        $remove_command $SYS_packages
+        commands_f remove $SYS_packages
         echo -e "${magenta}\n$text_packagemanager removal: DONE!\n${normal}"
     fi
  
@@ -606,7 +676,7 @@ setup() {
     echo -e "${yellow}\n Do you wish to Install the Flatpak service?\n(y|n)${normal}"
     read -r flatpak_install
     if [[ $flatpak_install == "y" ]]; then ### if the answer was yes (y) add "flatpak" to the list of packages to install
-        setup_install_package_names="$setup_install_package_names "flatpak
+        setup_install_package_names+='flatpak '
     fi
     
     
@@ -614,7 +684,7 @@ setup() {
     echo -e "${yellow}\n Do you wish to Install the Snap service?\n(y|n)${normal}"
     read -r snap_install
     if [[ $snap_install == "y" ]]; then ### if the answer was yes (y) add "snapd" to the list of packages to install
-        setup_install_package_names="$setup_install_package_names "snapd
+        setup_install_package_names+='snapd '
     fi
     
     ### If no correct answer is provided we can simply exit
@@ -622,7 +692,8 @@ setup() {
         echo -e "${yellow}\n No service was selected to install${normal}"
         close_delete
     else
-        $install_command "$setup_install_package_names"
+        # shellcheck disable=SC2086
+        commands_f install $setup_install_package_names
     fi
     ### IF the install was correct the binaries should be in place so we can add the flathub repo
     if [[ -f "$FLATPAK_LOCATION" ]]; then
@@ -685,14 +756,14 @@ menu_main() {
     case $menu_selection in
     
         ua|uu|update-all|0)
-            update_method=1
+            upgrade_method=1
             updater
             # shellcheck disable=SC2317
             close_delete wait
         ;;
         u|update|1)
             if [[ -n $2 ]];then ### set the update method if a second argument was given
-                update_method=$2
+                upgrade_method=$2
             fi
             updater
             # shellcheck disable=SC2317
