@@ -148,10 +148,14 @@ commands_f() {
                     yay
                 ;;
                 list_installed)
-                    yay -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>$list_installed_file 
+                    yay -Qn 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>$list_installed_file 
+                    yay -Qm 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O AUR " $1}'>>$list_installed_file 
                 ;;
                 search_create_list)
-                    yay --singlelineresults --topdown -Ss "$search_term" | awk -F/ '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+                    #with N option only repository packages are shown
+                    yay --singlelineresults --topdown -SsN "$search_term" | awk -F/ '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+                    #with a option only AUR packages are shown
+                    yay --singlelineresults --topdown -Ssa "$search_term" | awk -F/ '{print $2" "$1}' | awk '{print "- AUR " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
                 ;;
                 update_list_packages)
                     pacman -Q 2>/dev/null | wc -l
@@ -316,7 +320,7 @@ updater(){
 
             echo -e "${magenta}\n   --- Updating with $text_packagemanager: ---\n${normal}"
 
-            command_f upgrade
+            commands_f upgrade
             
             close_delete wait
 
@@ -410,8 +414,14 @@ search_package_install() {
  
     #### if a line is already installed then change the marking in the search result file.
     while read -r line; do
-        sed -i "s/- $line/O $line/g" $search_result_file_full
-    done < <(grep -Fxf <(sort $search_result_file_full | awk '{print $2" "$3}') <(sort $list_installed_file | awk '{print $2" "$3}'))
+        pack_man=$(echo "$line" | awk '{print $1}') 
+        if [[ $pack_man == "YAY" || $pack_man ==  "PAC" || $pack_man ==  "AUR" ]]; then       
+            #Cant exactly say why, but with YAY it should also contain a space
+            sed -i "s/- $line /O $line /g" $search_result_file_full
+        else
+            sed -i "s/- $line/O $line/g" $search_result_file_full
+        fi
+    done < <(grep -Fx -f <(sort $search_result_file_full | awk '{print $2" "$3}') <(sort $list_installed_file | awk '{print $2" "$3}'))
  
  
 }
@@ -437,6 +447,7 @@ FZF() {
     list_for_fzf=$(echo -e "$list_for_fzf" \
     	| awk -v srch='APT' -v repl='\\e[36mAPT \\e[0m' '{ sub(srch,repl,$2); print $0 }' \
     	| awk -v srch='YAY' -v repl='\\e[36mYAY \\e[0m' '{ sub(srch,repl,$2); print $0 }' \
+    	| awk -v srch='AUR' -v repl='\\e[33mAUR \\e[0m' '{ sub(srch,repl,$2); print $0 }' \
     	| awk -v srch='PAC' -v repl='\\e[36mPAC \\e[0m' '{ sub(srch,repl,$2); print $0 }' \
     	| awk -v srch='FLAT' -v repl='\\e[34mFLAT\\e[0m' '{ sub(srch,repl,$2); print $0 }' \
     	| awk -v srch='SNAP' -v repl='\\e[35mSNAP\\e[0m' '{ sub(srch,repl,$2); print $0 }' \
@@ -473,6 +484,11 @@ FZF() {
                     echo -e "\e[1;32mPackage is already INSTALLED with \e[36mYAY \e[1;32mInfo: \n\e[0m"
                     yay -Si {3}
                     fi
+                    if [[ {2} == "AUR" ]]
+                    then
+                    echo -e "\e[1;32mPackage is already INSTALLED with \e[36mAUR \e[1;32mInfo: \n\e[0m"
+                    yay -Si {3}
+                    fi
                     if [[ {2} == "PAC" ]]
                     then
                     echo -e "\e[1;32mPackage is already INSTALLED with \e[36mPAC \e[1;32mInfo: \n\e[0m"
@@ -497,6 +513,11 @@ FZF() {
                     if [[ {2} == "YAY" ]]
                     then
                     echo -e "\e[1;93mPackage is avaible with \e[36mYAY \e[1;93mInfo: \n\e[0m"
+                    yay -Si {3}
+                    fi
+                    if [[ {2} == "AUR" ]]
+                    then
+                    echo -e "\e[1;93mPackage is avaible with \e[36mAUR \e[1;93mInfo: \n\e[0m"
                     yay -Si {3}
                     fi
                     if [[ {2} == "PAC" ]]
@@ -543,6 +564,7 @@ FZF() {
         count_source=1
         count_pkg=2
         SYS_packages=""
+        AUR_packages=""
         FLAT_packages=""
         SNAP_packages=""
 
@@ -562,6 +584,9 @@ FZF() {
             YAY)
                 SYS_packages+="$package "
             ;;
+            AUR)
+                AUR_packages+="$package "
+            ;;
             PAC)
                 SYS_packages+="$package "
             ;;
@@ -580,6 +605,11 @@ FZF() {
         echo -e "${magenta}\n$text_packagemanager  packages selected:${normal}"
         echo "$SYS_packages"
     fi
+    if [[ -n $AUR_packages ]]; then
+        echo -e "${magenta}\nAUR packages selected:${normal}"
+        echo "$AUR_packages"
+    fi
+
     if [[ -n $FLAT_packages ]]; then
         echo -e "${blue}\nFLAT packages selected:${normal}"
         echo "$FLAT_packages"
@@ -595,11 +625,12 @@ FZF() {
 install_packages() {
     # determine the word number for every type.
     SYS_package_number=$(echo "$SYS_packages" | wc -w)
+    AUR_package_number=$(echo "$AUR_packages" | wc -w)
     FLAT_package_number=$(echo "$FLAT_packages" | wc -w)
     SNAP_package_number=$(echo "$SNAP_packages" | wc -w)
  
     # Check for the number of packages selected, only proceed if min 1 is selected in one type
-    if [ "$SYS_package_number" -gt "0" ] || [ "$SNAP_package_number" -gt "0" ] || [ "$FLAT_package_number" -gt "0" ]; then
+    if [ "$SYS_package_number" -gt "0" ] || [ "$AUR_package_number" -gt "0" ] || [ "$SNAP_package_number" -gt "0" ] || [ "$FLAT_package_number" -gt "0" ]; then
         echo -e "${red}Authentication required! Password:${normal}"
         sudo echo -e "${red}Authentication OK\n${normal}"
         echo
@@ -610,6 +641,13 @@ install_packages() {
         echo -e "${magenta}Installing packages from standard repository:\n${normal}"
         # shellcheck disable=SC2086
         commands_f install $SYS_packages
+        echo -e "${magenta}$text_packagemanager installation: DONE!\n${normal}"
+    fi
+    
+    if [ "$AUR_package_number" -gt "0" ]; then
+        echo -e "${magenta}Installing packages from AUR:\n${normal}"
+        # shellcheck disable=SC2086
+        commands_f install $AUR_packages
         echo -e "${magenta}$text_packagemanager installation: DONE!\n${normal}"
     fi
  
@@ -634,21 +672,29 @@ install_packages() {
 remove_packages() {
     # determine the word number for every type.
     SYS_package_number=$(echo "$SYS_packages" | wc -w)
+    AUR_package_number=$(echo "$AUR_packages" | wc -w)
     FLAT_package_number=$(echo "$FLAT_packages" | wc -w)
     SNAP_package_number=$(echo "$SNAP_packages" | wc -w)
  
     # Check for the number of packages selected, only proceed if min 1 is selected in one type
-    if [ "$SYS_package_number" -gt "0" ] || [ "$SNAP_package_number" -gt "0" ] || [ "$FLAT_package_number" -gt "0" ]; then
+    if [ "$SYS_package_number" -gt "0" ] || [ "$AUR_package_number" -gt "0" ] || [ "$SNAP_package_number" -gt "0" ] || [ "$FLAT_package_number" -gt "0" ]; then
         echo -e "${red}Authentication required! Password:${normal}"
         sudo echo -e "${green}Authentication OK\n${normal}"
     fi
  
-    # Remove regular packages with APT
+    # Remove regular packages with system main package manager
     if [ "$SYS_package_number" -gt "0" ]; then
-        echo -e "${magenta}Remove packages from standard repository:\n${normal}"
+        echo -e "${magenta}Remove standard repository packages:\n${normal}"
         # shellcheck disable=SC2086
         commands_f remove $SYS_packages
         echo -e "${magenta}\n$text_packagemanager removal: DONE!\n${normal}"
+    fi
+    # Remove AUR packages with YAY
+    if [ "$AUR_package_number" -gt "0" ]; then
+        echo -e "${magenta}Remove AUR packages:\n${normal}"
+        # shellcheck disable=SC2086
+        commands_f remove $AUR_packages
+        echo -e "${magenta}\nAUR removal: DONE!\n${normal}"
     fi
  
     # Remove FLATPAKs
@@ -669,7 +715,7 @@ remove_packages() {
  
 }
 
-### Setup function - Options to enable flatpak and snap repositories
+### 0up function - Options to enable flatpak and snap repositories
 setup() {
     setup_install_package_names=""
     ### Ask the user if they want to install Flatpak
