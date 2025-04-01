@@ -1,7 +1,10 @@
 # afs
 Wrapper for Debian and Arch based system to combine more package manager together.
+
 On Debian, Ubuntu, Mint, etc : Apt (nala*), Flatpak, Snap
+
 On Arch, Endeavour, Manjaro, etc : Pacman (yay*), Flatpak, Snap
+
 *nala and yay are the prefered package managers, with yay the AUR packages are treated as a separate source.
 
 
