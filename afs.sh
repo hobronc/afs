@@ -78,7 +78,7 @@ commands_f() {
                     nala remove $2
                 ;;
                 upgrade)
-                    nala upgrade -y $2
+                    nala upgrade -y
                 ;;
                 list_installed)
                     apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
@@ -109,7 +109,7 @@ commands_f() {
                     sudo apt remove $2
                 ;;
                 upgrade)
-                    sudo apt update && sudo apt ugprade -y
+                    sudo apt update && sudo apt upgrade -y
                 ;;
                 list_installed)
                     apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
