@@ -72,18 +72,22 @@ commands_f() {
         nala)
             case $1 in
                 install)
+                    # shellcheck disable=SC2086
                     nala install $2
                 ;;
                 remove)
+                    # shellcheck disable=SC2086
                     nala remove $2
                 ;;
                 upgrade)
                     nala upgrade -y
                 ;;
                 list_installed)
+                    # shellcheck disable=SC2086
                     apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
                 ;;
                 search_create_list)
+                    # shellcheck disable=SC2086
                     apt-cache search "$search_term" | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
                 ;;
                 update_list_packages)
@@ -103,18 +107,22 @@ commands_f() {
         apt)
             case $1 in
                 install)
+                    # shellcheck disable=SC2086
                     sudo apt install $2
                 ;;
                 remove)
+                    # shellcheck disable=SC2086
                     sudo apt remove $2
                 ;;
                 upgrade)
                     sudo apt update && sudo apt upgrade -y
                 ;;
                 list_installed)
+                    # shellcheck disable=SC2086
                     apt list --installed 2>/dev/null | awk -F '/' '{print "O APT " $1}'>>$list_installed_file
                 ;;
                 search_create_list)
+                    # shellcheck disable=SC2086
                     apt-cache search "$search_term" | awk '{print "- APT " $0 "..."}'>>$search_result_file_full
                 ;;
                 update_list_packages)
@@ -139,22 +147,28 @@ commands_f() {
         yay)
             case $1 in
                 install)
+                    # shellcheck disable=SC2086
                     yay -S $2
                 ;;
                 remove)
+                    # shellcheck disable=SC2086
                     yay -Rs $2
                 ;;
                 upgrade)
                     yay
                 ;;
                 list_installed)
+                    # shellcheck disable=SC2086
                     yay -Qn 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>$list_installed_file 
+                    # shellcheck disable=SC2086
                     yay -Qm 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O AUR " $1}'>>$list_installed_file 
                 ;;
                 search_create_list)
                     #with N option only repository packages are shown
+                    # shellcheck disable=SC2086
                     yay --singlelineresults --topdown -SsN "$search_term" | awk -F/ '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
                     #with a option only AUR packages are shown
+                    # shellcheck disable=SC2086
                     yay --singlelineresults --topdown -Ssa "$search_term" | awk -F/ '{print $2" "$1}' | awk '{print "- AUR " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
                 ;;
                 update_list_packages)
@@ -173,18 +187,22 @@ commands_f() {
         pacman)
             case $1 in
                 install)
+                    # shellcheck disable=SC2086
                     sudo pacman -S $2
                 ;;
                 remove)
+                    # shellcheck disable=SC2086
                     sudo pacman -Rs $2
                 ;;
                 upgrade)
                     sudo pacman -Syu
                 ;;
                 list_installed)
+                    # shellcheck disable=SC2086
                     pacman -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O PAC " $1}'>>$list_installed_file
                 ;;
                 search_create_list)
+                    # shellcheck disable=SC2086
                     pacman -Ss "$search_term" | paste -d '' - -  | awk -F/ '{print $2" "$1}' | awk '{print "- PAC " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
                 ;;
                 update_list_packages)
