@@ -658,14 +658,14 @@ install_packages() {
     if [ "$SYS_package_number" -gt "0" ]; then
         echo -e "${magenta}Installing packages from standard repository:\n${normal}"
         # shellcheck disable=SC2086
-        commands_f install $SYS_packages
+        commands_f install "$SYS_packages"
         echo -e "${magenta}$text_packagemanager installation: DONE!\n${normal}"
     fi
     
     if [ "$AUR_package_number" -gt "0" ]; then
         echo -e "${magenta}Installing packages from AUR:\n${normal}"
         # shellcheck disable=SC2086
-        commands_f install $AUR_packages
+        commands_f install "$AUR_packages"
         echo -e "${magenta}$text_packagemanager installation: DONE!\n${normal}"
     fi
  
@@ -673,7 +673,7 @@ install_packages() {
     if [ "$FLAT_package_number" -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
         echo -e "${blue}Installing FLATPAK packages:\n${normal}"
         # shellcheck disable=SC2086
-        flatpak install $FLAT_packages
+        flatpak install "$FLAT_packages"
         echo -e "${blue}Flatpak installation: DONE!\n${normal}"
     fi
  
@@ -681,7 +681,7 @@ install_packages() {
     if [ "$SNAP_package_number" -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
         echo -e "${cyan}Installing Snap packages:\n${normal}"
         # shellcheck disable=SC2086
-        sudo snap install $SNAP_packages
+        sudo snap install "$SNAP_packages"
         echo -e "${cyan}SNAP installation: DONE!\n${normal}"
     fi
  
@@ -704,14 +704,14 @@ remove_packages() {
     if [ "$SYS_package_number" -gt "0" ]; then
         echo -e "${magenta}Remove standard repository packages:\n${normal}"
         # shellcheck disable=SC2086
-        commands_f remove $SYS_packages
+        commands_f remove "$SYS_packages"
         echo -e "${magenta}\n$text_packagemanager removal: DONE!\n${normal}"
     fi
     # Remove AUR packages with YAY
     if [ "$AUR_package_number" -gt "0" ]; then
         echo -e "${magenta}Remove AUR packages:\n${normal}"
         # shellcheck disable=SC2086
-        commands_f remove $AUR_packages
+        commands_f remove "$AUR_packages"
         echo -e "${magenta}\nAUR removal: DONE!\n${normal}"
     fi
  
@@ -719,7 +719,7 @@ remove_packages() {
     if [ "$FLAT_package_number" -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
         echo -e "${blue}Remove FLATPAK packages:\n${normal}"
         # shellcheck disable=SC2086
-        flatpak remove $FLAT_packages
+        flatpak remove "$FLAT_packages"
         echo -e "${blue}\nFlatpak removal: DONE!\n${normal}"
     fi
  
@@ -727,7 +727,7 @@ remove_packages() {
     if [ "$SNAP_package_number" -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
         echo -e "${cyan}Remove Snap packages:\n${normal}"
         # shellcheck disable=SC2086
-        sudo snap remove $SNAP_packages
+        sudo snap remove "$SNAP_packages"
         echo -e "${cyan}\nSNAP removal: DONE!\n${normal}"
     fi
  
