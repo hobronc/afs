@@ -578,7 +578,7 @@ FZF() {
         close_delete
     fi
  
-        ### we proceed to make 3 list with the selected packages regarding the repository sources
+        ### we proceed to make 4 list with the selected packages regarding the repository sources
         count_source=1
         count_pkg=2
         SYS_packages=""
@@ -630,7 +630,10 @@ FZF() {
 
     if [[ -n $FLAT_packages ]]; then
         echo -e "${blue}\nFLAT packages selected:${normal}"
+        # Remove last character as flatpak does not accept with space
+        FLAT_packages="${FLAT_packages::-1}"
         echo "$FLAT_packages"
+
     fi
     if [[ -n $SNAP_packages ]]; then
         echo -e "${cyan}\nSNAP packages selected:${normal}"
