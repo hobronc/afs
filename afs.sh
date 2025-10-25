@@ -159,19 +159,21 @@ commands_f() {
                 ;;
                 list_installed)
                     # shellcheck disable=SC2086
-                    pacman -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O PAC " $1}'>>$list_installed_file
-                    # yay -Qn 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>$list_installed_file 
-                    # yay -Qm 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O AUR " $1}'>>$list_installed_file 
+                    #pacman -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O PAC " $1}'>>$list_installed_file
+                    yay -Qn 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>"$list_installed_file" 
+                    yay -Qm 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O AUR " $1}'>>"$list_installed_file" 
 
                 ;;
                 search_create_list)
-                    # shellcheck disable=SC2086
-                    pacman -Ss "$search_term" | paste -d '' - -  | awk -F/ '{print $2" "$1}' | awk '{print "- PAC " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
-
                     #with N option only repository packages are shown
-					# yay --singlelineresults --topdown -SsN "$search_term" 2>/dev/null | awk -F'/' '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+					#yay --singlelineresults --topdown -Ss --repo "$search_term" | awk -F'/' '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>"$search_result_file_full"
+					# currently only the simple output is working "q" option is added
+					yay --singlelineresults --color never --topdown -Ssq --repo "$search_term" | awk '{print "- YAY " $1}'>>"$search_result_file_full"
+
+
                     #with a option only AUR packages are shown
 					# yay --singlelineresults --topdown -Ssa "$search_term" 2>/dev/null | awk -F'/' '{print $2" "$1}' | awk '{print "- AUR " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+					yay --singlelineresults --color never --topdown -Ssqa "$search_term" | awk '{print "- AUR " $1}'>>"$search_result_file_full"
                 ;;
                 update_list_packages)
                     pacman -Q 2>/dev/null | wc -l
@@ -419,7 +421,7 @@ search_package_install() {
  
     echo -e "${magenta} Search the standard repository${normal}"
     
-    commands_f search_create_list
+    commands_f "search_create_list"
 
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         echo -e "${blue} Search the Flatpak repos${normal}"
