@@ -50,12 +50,12 @@ elif command -v apt &> /dev/null ; then
 
     text_packagemanager='APT'
 
-#elif command -v yay &> /dev/null ; then
-#
-#    package_manager_type='yay'
-#
-#    text_packagemanager='YAY'
-#
+elif command -v yay &> /dev/null ; then
+
+    package_manager_type='yay'
+
+    text_packagemanager='YAY'
+
 elif command -v pacman &> /dev/null ; then
 	echo -e "${green}yay is not present, we reccomend using it instead of pacman${normal}"
 
@@ -159,17 +159,19 @@ commands_f() {
                 ;;
                 list_installed)
                     # shellcheck disable=SC2086
-                    yay -Qn 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>$list_installed_file 
-                    # shellcheck disable=SC2086
-                    yay -Qm 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O AUR " $1}'>>$list_installed_file 
+                    pacman -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O PAC " $1}'>>$list_installed_file
+                    # yay -Qn 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>$list_installed_file 
+                    # yay -Qm 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O AUR " $1}'>>$list_installed_file 
+
                 ;;
                 search_create_list)
+                    # shellcheck disable=SC2086
+                    pacman -Ss "$search_term" | paste -d '' - -  | awk -F/ '{print $2" "$1}' | awk '{print "- PAC " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+
                     #with N option only repository packages are shown
-                    # shellcheck disable=SC2086
-                    yay --singlelineresults --topdown -SsN "$search_term" 2>/dev/null | awk -F'/' '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+					# yay --singlelineresults --topdown -SsN "$search_term" 2>/dev/null | awk -F'/' '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
                     #with a option only AUR packages are shown
-                    # shellcheck disable=SC2086
-                    yay --singlelineresults --topdown -Ssa "$search_term" 2>/dev/null | awk -F'/' '{print $2" "$1}' | awk '{print "- AUR " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
+					# yay --singlelineresults --topdown -Ssa "$search_term" 2>/dev/null | awk -F'/' '{print $2" "$1}' | awk '{print "- AUR " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
                 ;;
                 update_list_packages)
                     pacman -Q 2>/dev/null | wc -l
