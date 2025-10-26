@@ -1,8 +1,8 @@
 #!/usr/bin/bash
- 
+
 ## Set the main work folder
 work_folder='/tmp/afs-'$RANDOM
- 
+
 mkdir $work_folder
 cd $work_folder || exit
 
@@ -38,7 +38,7 @@ fi
 
 ###Check what package manager is available
 if command -v nala &> /dev/null ; then
-    
+
     package_manager_type='nala'
 
     text_packagemanager='NALA'
@@ -94,7 +94,7 @@ commands_f() {
                     apt list --installed 2>/dev/null | wc -l
                     list_upgradable_apt_file="$work_folder/upgradable_apt"
                     apt list --upgradable 2>/dev/null>>$list_upgradable_apt_file
-            
+
                     if (( $(cat $list_upgradable_apt_file | wc -l ) == 1 )); then
                         echo -e "${white}\nThere is no upgradable package.${normal}"
                     else
@@ -131,7 +131,7 @@ commands_f() {
                     ### TODO file creation is unnecessary - evaulate in if statement
                     list_upgradable_apt_file="$work_folder/upgradable_apt"
                     apt list --upgradable 2>/dev/null>>$list_upgradable_apt_file
-            
+
                     if (( $(cat $list_upgradable_apt_file | wc -l ) == 1 )); then
                         echo -e "${white}\nThere is no upgradable package.${normal}"
                     else
@@ -160,8 +160,8 @@ commands_f() {
                 list_installed)
                     # shellcheck disable=SC2086
                     #pacman -Q 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O PAC " $1}'>>$list_installed_file
-                    yay -Qn 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>"$list_installed_file" 
-                    yay -Qm 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O AUR " $1}'>>"$list_installed_file" 
+                    yay -Qn 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O YAY " $1}'>>"$list_installed_file"
+                    yay -Qm 2>/dev/null | awk '{print $1}' | awk -F '/' '{print "O AUR " $1}'>>"$list_installed_file"
 
                 ;;
                 search_create_list)
@@ -239,7 +239,7 @@ if ! command -v fzf &> /dev/null ; then
     read -r confirmation_fzf
         if [[ $confirmation_fzf == "y" ]]; then
             sudo apt install fzf
-        fi    
+        fi
     echo -e "${green}\nInstallation of FZF done.\n${normal}"
 
     if ! command -v nala &> /dev/null ; then
@@ -248,7 +248,7 @@ if ! command -v fzf &> /dev/null ; then
         if [[ $confirmation_nala == "y" ]]; then
             sudo apt install nala
         fi
-        
+
     echo -e "${green}\nInstallation of nala is done.${normal}"
 
     fi
@@ -267,11 +267,11 @@ SNAP_ENABLE='0'
 if command -v snap &> /dev/null ; then
     SNAP_ENABLE='2'
 fi
- 
+
 ### create a sum for easier comparasion
 FLAT_SNAP_ENABLE=$((FLATPAK_ENABLE + SNAP_ENABLE))
- 
- 
+
+
 updater(){
     ### First show the installed packages
     # from FLATPAK
@@ -279,18 +279,18 @@ updater(){
             echo -e "${blue}        --- Flatpak packages: (only apps) ---\n${normal}"
             flatpak list --app
     fi
- 
+
     # from Snaps
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
         echo -e "${cyan}\n        --- Snap packages: ---\n${normal}"
         snap list
     fi
-    
+
     # from the repoes
     echo -e "${magenta}\n        --- Installed packages (only the number) from the standard repositories: ---\n${normal}"
-    
+
     commands_f update_list_packages
-       
+
 
     if [ -z "$upgrade_method" ]; then
         ### The updated ask for the options, the $FLAT_SNAP_ENABLE variable define the availability of Flatpak and Snaps
@@ -309,27 +309,27 @@ updater(){
                 echo -e "${green} 1 or a = ALL \n 2 or r = $text_packagemanager only \n 3 or f = FLATPAK only\n 4 or s = SNAP only${normal}"
             ;;
         esac
- 
+
         ### read for the option
         read -r upgrade_method
         echo
         fi
- 
+
     case $upgrade_method in
         a|1)
             echo -e "${red}Authentication required! Password:${normal}"
             sudo echo -e "${red}Authentication OK\n${normal}"
-            
+
             echo -e "${magenta}\n   --- Updating with $text_packagemanager: ---\n${normal}"
-            
+
             commands_f upgrade
-                
-                 
+
+
             if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
                 echo -e "${blue}\n   --- Updating Flatpaks: ---\n${normal}"
                 flatpak update -y
             fi
- 
+
             if [[ "$SNAP_ENABLE" -eq "2" ]]; then
                 echo -e "${cyan}\n   --- Updating Snaps: ---\n${normal}"
                 sudo snap refresh
@@ -343,7 +343,7 @@ updater(){
             echo -e "${magenta}\n   --- Updating with $text_packagemanager: ---\n${normal}"
 
             commands_f upgrade
-            
+
             close_delete wait
 
         ;;
@@ -358,7 +358,7 @@ updater(){
                 echo -e "${yellow}There is no FLATPAK support. Wrong choice!\nExiting...${normal}"
                 close_delete
             fi
- 
+
         ;;
         s|4)
             if [[ "$SNAP_ENABLE" -eq "2" ]]; then
@@ -377,31 +377,31 @@ updater(){
            close_delete
         ;;
     esac
- 
+
     # shellcheck disable=SC2317
     close_delete wait
 }
- 
- 
+
+
 ### FUNCTION - list all the installed packages on the system - add Flatpak and Snap packages to if they are avaibled
 lister_installed() {
- 
+
     list_installed_file="$work_folder/installed"
-    
+
     commands_f list_installed
 
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         flatpak list --columns=app | awk '{print "O FLAT " $1}'>>$list_installed_file
     fi
-     
+
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
         snap list | awk '{print "O SNAP " $1}'>>$list_installed_file
     fi
- 
+
 }
- 
+
 search_package_install() {
- 
+
     if [ -z "$search_term" ]; then
         ### Ask for the search term, which to use.
         echo -e "${green}\nPlease provide a search term\n${normal}"
@@ -410,52 +410,52 @@ search_package_install() {
     else
         echo -e "${green}\nStart searching for $search_term...\n${normal}"
     fi
- 
- 
+
+
     if [ -z "$search_term" ]; then
         echo -e "${red}No search term provided\nExiting...${normal}"
         close_delete
     fi
- 
+
     search_result_file_full="$work_folder/search_result_full"
- 
+
     echo -e "${magenta} Search the standard repository${normal}"
-    
+
     commands_f "search_create_list"
 
     if [[ "$FLATPAK_ENABLE" -eq "1" ]]; then
         echo -e "${blue} Search the Flatpak repos${normal}"
         flatpak search --columns=app,name,description "$search_term" | awk '{print "- FLAT " $0 "..."}'>>$search_result_file_full
     fi
- 
+
     if [[ "$SNAP_ENABLE" -eq "2" ]]; then
         echo -e "${cyan} Search the Snap repos${normal}"
         snap search "$search_term" 2>/dev/null | awk '{$2=$3=$4=""; print "- SNAP " $0 "..."}'>>$search_result_file_full
     fi
- 
- 
+
+
     #### if a line is already installed then change the marking in the search result file.
     while read -r line; do
-        pack_man=$(echo "$line" | awk '{print $1}') 
-        if [[ $pack_man == "YAY" || $pack_man ==  "PAC" || $pack_man ==  "AUR" ]]; then       
+        pack_man=$(echo "$line" | awk '{print $1}')
+        if [[ $pack_man == "YAY" || $pack_man ==  "PAC" || $pack_man ==  "AUR" ]]; then
             #Cant exactly say why, but with YAY it should also contain a space
             sed -i "s/- $line /O $line /g" $search_result_file_full
         else
             sed -i "s/- $line/O $line/g" $search_result_file_full
         fi
     done < <(grep -Fx -f <(sort $search_result_file_full | awk '{print $2" "$3}') <(sort $list_installed_file | awk '{print $2" "$3}'))
- 
- 
+
+
 }
- 
+
 FZF() {
- 
+
     if [[ $1 == "install" ]]; then
- 
+
         list_for_fzf=$(grep -v 'FLAT No matches found' "$search_result_file_full" | grep -v 'SNAP Name  ')
- 
+
         number_of_result=$(wc -l "$search_result_file_full" | awk '{ print $1 }')
- 
+
         if [[ "$number_of_result" -lt "1" ]]; then
             echo -e "\nNo package found. Exiting..."
             close_delete
@@ -463,9 +463,9 @@ FZF() {
     elif [[ $1 == "remove" ]]; then
         list_for_fzf=$(cat $list_installed_file | grep -v "SNAP Name" | grep -v "Listing...")
     fi
-    
-	
-    ### COLORIZE THE FZF WITH ANSI COLORS	
+
+
+    ### COLORIZE THE FZF WITH ANSI COLORS
     list_for_fzf=$(echo -e "$list_for_fzf" \
     	| awk -v srch='APT' -v repl='\\e[36mAPT \\e[0m' '{ sub(srch,repl,$2); print $0 }' \
     	| awk -v srch='YAY' -v repl='\\e[36mYAY \\e[0m' '{ sub(srch,repl,$2); print $0 }' \
@@ -475,7 +475,7 @@ FZF() {
     	| awk -v srch='SNAP' -v repl='\\e[35mSNAP\\e[0m' '{ sub(srch,repl,$2); print $0 }' \
     	| awk -v srch='-' -v repl='\\e[93m-\\e[0m' '{ sub(srch,repl,$1); print $0 }' \
     	| awk -v srch='O' -v repl='\\e[92mO\\e[0m' '{ sub(srch,repl,$1); print $0 }' )
-    
+
 
     pkg="$(
         echo -e "$list_for_fzf" |                                     # load list of package names from $pacui_list_install_all variable. "-e" interprets the added newlines.
@@ -568,20 +568,20 @@ FZF() {
             )" \
             --header="TAB key to (un)select. ENTER to install. ESC to quit." \
             --prompt="Enter string to filter list > " |
-        awk '{print $2" "$3}'                                                 # use "awk" to filter output of "fzf" and only get the first field (which contains the package name). 
+        awk '{print $2" "$3}'                                                 # use "awk" to filter output of "fzf" and only get the first field (which contains the package name).
 										# "fzf" should output a separated (by newline characters) list of all chosen packages!
     )"
- 
- 
+
+
         selection_result_file="$work_folder/selection_result"
-    
+
     echo "$pkg">>$selection_result_file
     max_word=$(cat $selection_result_file | wc -w)
     if [[ "$max_word" -lt "2" ]]; then
         echo -e "\nNo package selected. Exiting..."
         close_delete
     fi
- 
+
         ### we proceed to make 4 list with the selected packages regarding the repository sources
         count_source=1
         count_pkg=2
@@ -592,7 +592,7 @@ FZF() {
 
     # create a single line from multiple lines
     sed -i ':a;N;$!ba;s/\n/ /g' "$selection_result_file"
-    
+
     while [[ $count_source -le $max_word ]]
     do
         # source=$(cat $selection_result_file | cut -d " " -f $count_source)
@@ -622,7 +622,7 @@ FZF() {
         count_source=$(( count_source + 2 ))
         count_pkg=$(( count_pkg + 2 ))
     done
- 
+
     if [[ -n $SYS_packages ]]; then
         echo -e "${magenta}\n$text_packagemanager  packages selected:${normal}"
         echo "$SYS_packages"
@@ -644,23 +644,23 @@ FZF() {
         echo "$SNAP_packages"
     fi
     echo
- 
+
 }
- 
+
 install_packages() {
     # determine the word number for every type.
     SYS_package_number=$(echo "$SYS_packages" | wc -w)
     AUR_package_number=$(echo "$AUR_packages" | wc -w)
     FLAT_package_number=$(echo "$FLAT_packages" | wc -w)
     SNAP_package_number=$(echo "$SNAP_packages" | wc -w)
- 
+
     # Check for the number of packages selected, only proceed if min 1 is selected in one type
     if [ "$SYS_package_number" -gt "0" ] || [ "$AUR_package_number" -gt "0" ] || [ "$SNAP_package_number" -gt "0" ] || [ "$FLAT_package_number" -gt "0" ]; then
         echo -e "${red}Authentication required! Password:${normal}"
         sudo echo -e "${red}Authentication OK\n${normal}"
         echo
     fi
- 
+
     # Installing regular packages with APT, YAY or Pacman
     if [ "$SYS_package_number" -gt "0" ]; then
         echo -e "${magenta}Installing packages from standard repository:\n${normal}"
@@ -668,22 +668,21 @@ install_packages() {
         commands_f install "$SYS_packages"
         echo -e "${magenta}$text_packagemanager installation: DONE!\n${normal}"
     fi
-    
+
     if [ "$AUR_package_number" -gt "0" ]; then
         echo -e "${magenta}Installing packages from AUR:\n${normal}"
         # shellcheck disable=SC2086
         commands_f install "$AUR_packages"
         echo -e "${magenta}$text_packagemanager installation: DONE!\n${normal}"
     fi
- 
+
     # Installing FLATPAKs
     if [ "$FLAT_package_number" -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
         echo -e "${blue}Installing FLATPAK packages:\n${normal}"
-        # shellcheck disable=SC2086
         flatpak install "$FLAT_packages"
         echo -e "${blue}Flatpak installation: DONE!\n${normal}"
     fi
- 
+
     # Installing SNAPs
     if [ "$SNAP_package_number" -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
         echo -e "${cyan}Installing Snap packages:\n${normal}"
@@ -691,22 +690,22 @@ install_packages() {
         sudo snap install "$SNAP_packages"
         echo -e "${cyan}SNAP installation: DONE!\n${normal}"
     fi
- 
+
 }
- 
+
 remove_packages() {
     # determine the word number for every type.
     SYS_package_number=$(echo "$SYS_packages" | wc -w)
     AUR_package_number=$(echo "$AUR_packages" | wc -w)
     FLAT_package_number=$(echo "$FLAT_packages" | wc -w)
     SNAP_package_number=$(echo "$SNAP_packages" | wc -w)
- 
+
     # Check for the number of packages selected, only proceed if min 1 is selected in one type
     if [ "$SYS_package_number" -gt "0" ] || [ "$AUR_package_number" -gt "0" ] || [ "$SNAP_package_number" -gt "0" ] || [ "$FLAT_package_number" -gt "0" ]; then
         echo -e "${red}Authentication required! Password:${normal}"
         sudo echo -e "${green}Authentication OK\n${normal}"
     fi
- 
+
     # Remove regular packages with system main package manager
     if [ "$SYS_package_number" -gt "0" ]; then
         echo -e "${magenta}Remove standard repository packages:\n${normal}"
@@ -721,7 +720,7 @@ remove_packages() {
         commands_f remove "$AUR_packages"
         echo -e "${magenta}\nAUR removal: DONE!\n${normal}"
     fi
- 
+
     # Remove FLATPAKs
     if [ "$FLAT_package_number" -gt "0" ] && [ $FLATPAK_ENABLE -eq "1" ]; then
         echo -e "${blue}Remove FLATPAK packages:\n${normal}"
@@ -729,7 +728,7 @@ remove_packages() {
         flatpak remove "$FLAT_packages"
         echo -e "${blue}\nFlatpak removal: DONE!\n${normal}"
     fi
- 
+
     # Remove SNAPs
     if [ "$SNAP_package_number" -gt "0" ] && [ $SNAP_ENABLE -eq "2" ]; then
         echo -e "${cyan}Remove Snap packages:\n${normal}"
@@ -737,7 +736,7 @@ remove_packages() {
         sudo snap remove "$SNAP_packages"
         echo -e "${cyan}\nSNAP removal: DONE!\n${normal}"
     fi
- 
+
 }
 
 ### 0up function - Options to enable flatpak and snap repositories
@@ -749,7 +748,7 @@ setup() {
     if [[ $flatpak_install == "y" ]]; then ### if the answer was yes (y) add "flatpak" to the list of packages to install
         setup_install_package_names+='flatpak '
     fi
-    
+
     if [[ $package_manager_type == "apt" || $package_manager_type == "nala" ]]; then
         ### Ask the user if they want to install Snapd
         echo -e "${yellow}\n Do you wish to Install the Snap service?\n(y|n)${normal}"
@@ -778,7 +777,7 @@ setup() {
         sudo snap install core
         echo -e "${yellow}\nSnap core service installed.\n${normal}"
     fi
-    
+
     echo -e "${yellow}\n Please note that the Flatpak service installation requires a reboot to be fully finished.${normal}"
 }
 
@@ -792,10 +791,10 @@ close_delete() {
     rm -rf $work_folder
     exit 0
 }
- 
+
 ###  Menu function.
 menu_main() {
- 
+
     ### if an option is provided when the script is lauched then proceed with that option. if $1 was empty show the menu.
     if [ -z "$1" ]; then
         echo -e "${yellow}\n      --- Please choose from the following options: ---\n${normal}"
@@ -807,9 +806,9 @@ menu_main() {
         fi
         echo -e "${white} h|? - Help page${normal}"
         echo
-        
+
         read -r menu_selection
- 
+
         #~ Clear the screen after the menu. This is the only time when we clear the terminal.
             local lines
             # number of lines of the user's terminal.
@@ -819,16 +818,16 @@ menu_main() {
                     # insert "lines" number of empty lines:
                     echo
             done
- 
+
         # move cursor to the top left of the terminal
         tput cup 0 0
- 
+
     else ### if there were an argument in $1 then use that as the choice
         menu_selection=$1
     fi
- 
+
     case $menu_selection in
-    
+
         ua|uu|update-all|0)
             upgrade_method=1
             updater
@@ -845,13 +844,13 @@ menu_main() {
         ;;
         i|install|2)
             lister_installed ## call the installed packages (list creation) function
- 
+
             if [[ -n $2 ]];then ### only set search_term if the 2. var is not empty.
                 search_term=$2
             fi
             search_package_install "$search_term" ## call the search function
             FZF install    ## call the FZF function with the install argument
- 
+
             echo -e "${yellow}Do you want to continue installign the selected packages? [Y/n]${normal}"
             read -r proceed_confirmation
                 case $proceed_confirmation in
@@ -868,7 +867,7 @@ menu_main() {
         r|remove|3)
             lister_installed ## call the installed packages (list creaton) function
             FZF remove ### call the fzf function with the remove argument
- 
+
             echo -e "${yellow}\nDo you want to continue removing the selected packages? [Y/n]${normal}"
             read -r proceed_confirmation
                 case $proceed_confirmation in
@@ -926,11 +925,10 @@ menu_main() {
         *)
         echo -e "${red}\nNo option provided exiting...${normal}"
         close_delete
-        ;; 
+        ;;
     esac
- 
+
 }
- 
+
 ### Simply launch the main menu
 menu_main "$1" "$2"
- 
