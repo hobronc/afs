@@ -168,12 +168,12 @@ commands_f() {
                     #with N option only repository packages are shown
 					#yay --singlelineresults --topdown -Ss --repo "$search_term" | awk -F'/' '{print $2" "$1}' | awk '{print "- YAY " $1" | "$NF" | "$0"..."}'>>"$search_result_file_full"
 					# currently only the simple output is working "q" option is added
-					yay --singlelineresults --color never --topdown -Ssq --repo "$search_term" | awk '{print "- YAY " $1}'>>"$search_result_file_full"
+					yay --singlelineresults --color never --topdown -Ssq --repo "$search_term" | awk '{print "- YAY "$1}'>>"$search_result_file_full"
 
 
                     #with a option only AUR packages are shown
 					# yay --singlelineresults --topdown -Ssa "$search_term" 2>/dev/null | awk -F'/' '{print $2" "$1}' | awk '{print "- AUR " $1" | "$NF" | "$0"..."}'>>$search_result_file_full
-					yay --singlelineresults --color never --topdown -Ssqa "$search_term" | awk '{print "- AUR " $1}'>>"$search_result_file_full"
+					yay --singlelineresults --color never --topdown -Ssqa "$search_term" | awk '{print "- AUR "$1}'>>"$search_result_file_full"
                 ;;
                 update_list_packages)
                     pacman -Q 2>/dev/null | wc -l
@@ -433,16 +433,17 @@ search_package_install() {
         snap search "$search_term" 2>/dev/null | awk '{$2=$3=$4=""; print "- SNAP " $0 "..."}'>>$search_result_file_full
     fi
 
-
     #### if a line is already installed then change the marking in the search result file.
     while read -r line; do
-        pack_man=$(echo "$line" | awk '{print $1}')
-        if [[ $pack_man == "YAY" || $pack_man ==  "PAC" || $pack_man ==  "AUR" ]]; then
-            #Cant exactly say why, but with YAY it should also contain a space
-            sed -i "s/- $line /O $line /g" $search_result_file_full
-        else
-            sed -i "s/- $line/O $line/g" $search_result_file_full
-        fi
+        ### with recent yay update this part is not needed anymore
+        # pack_man=$(echo "$line" | awk '{print $1}')
+        # if [[ $pack_man == "YAY" || $pack_man ==  "PAC" || $pack_man ==  "AUR" ]]; then
+        #     #Cant exactly say why, but with YAY it should also contain a space
+        #     sed -i "s/- $line/O $line/g" "$search_result_file_full"
+        #     echo "$line"
+        # else
+        sed -i "s/- $line/O $line/g" "$search_result_file_full"
+        # fi
     done < <(grep -Fx -f <(sort $search_result_file_full | awk '{print $2" "$3}') <(sort $list_installed_file | awk '{print $2" "$3}'))
 
 
